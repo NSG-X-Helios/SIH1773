@@ -3,5 +3,13 @@
   "identifier": "default",
   "description": "enables the default permissions",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": [
+    "core:default",
+    "fs:default",
+    "dialog:default",
+    "fs:scope",
+    "fs:allow-read-text-file",
+    "fs:allow-resource-read-recursive"
+  ]
 }
+

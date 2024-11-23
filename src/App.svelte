@@ -1,16 +1,42 @@
 <script lang="ts">
   import { Canvas } from "@threlte/core";
-  import Scene from "$lib/components/Scene.svelte";
-  import Modifiers from "$lib/components/Modifiers.svelte";
+  import Scene from "$lib/components/canvas/Scene.svelte";
+  import SidePanel from "$lib/components/sidepanel/SidePanel.svelte";
+  import { globalState } from "$lib/state.svelte";
+  import type { ThrelteGltf } from "@threlte/extras";
+  import { ARButton, VRButton } from "@threlte/xr";
+  import { resolveResource, resourceDir } from "@tauri-apps/api/path";
+  import { message } from "@tauri-apps/plugin-dialog";
+  (async () => {
+    const resourcePath = await resolveResource("resources/hello.txt");
+    await message(resourcePath);
+  })();
+  let gltf: undefined | ThrelteGltf;
+  let invalidate;
+  let removeOutline;
+  const goFullScreen = (event: KeyboardEvent) => {
+    if (globalState.isGLTFUploaded && event.ctrlKey && event.key === "q") {
+      event.preventDefault();
+      globalState.isFullScreen = !globalState.isFullScreen;
+    }
+  };
 </script>
 
+<svelte:document onkeyup={goFullScreen} />
 <main class="h-screen w-screen items-center justify-center flex">
-  <div class="h-full w-[35%]">
-    <Modifiers />
+  <div class="h-full w-[35%]" class:hidden={globalState.isFullScreen}>
+    <SidePanel {gltf} {invalidate} {removeOutline} />
   </div>
-  <div class="h-full w-[65%] flex items-center justify-center">
-    <Canvas>
-      <Scene />
-    </Canvas>
+  <div
+    class="h-full flex items-center justify-center"
+    class:w-full={globalState.isFullScreen}
+    class:w-[65%]={!globalState.isFullScreen}
+  >
+    {#if globalState.isGLTFUploaded}
+      <Canvas>
+        <Scene bind:gltf bind:invalidate bind:removeOutline />
+      </Canvas>
+      <VRButton onclick={() => (globalState.isFullScreen = true)} />
+    {/if}
   </div>
 </main>
