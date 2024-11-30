@@ -7,6 +7,8 @@
     "core:default",
     "fs:default",
     "fs:scope",
-    "fs:allow-resource-read-recursive"
+    "fs:allow-resource-read-recursive",
+    "fs:allow-appdata-write-recursive",
+    "dialog:default"
   ]
 }
