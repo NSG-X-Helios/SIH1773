@@ -17,9 +17,9 @@
     z: [$gltf.nodes[globalState.currentMesh].scale.z],
   });
   let coordinates = $state({
-    x: [1],
-    y: [1],
-    z: [1],
+    x: [$gltf.nodes[globalState.currentMesh].position.x],
+    y: [$gltf.nodes[globalState.currentMesh].position.y],
+    z: [$gltf.nodes[globalState.currentMesh].position.z],
   });
   $effect(() => {
     color = `#${$gltf.nodes[globalState.currentMesh].material.color.getHexString()}`;
@@ -28,14 +28,14 @@
     visibility = $gltf.nodes[globalState.currentMesh].visible;
   });
   $effect(() => {
-    scale.x[0] = $gltf.nodes[globalState.currentMesh].scale.x;
-    scale.y[0] = $gltf.nodes[globalState.currentMesh].scale.y;
-    scale.z[0] = $gltf.nodes[globalState.currentMesh].scale.z;
+    scale.x = [$gltf.nodes[globalState.currentMesh].scale.x];
+    scale.y = [$gltf.nodes[globalState.currentMesh].scale.y];
+    scale.z = [$gltf.nodes[globalState.currentMesh].scale.z];
   });
   $effect(() => {
-    coordinates.x[0] = $gltf.nodes[globalState.currentMesh].position.x;
-    coordinates.y[0] = $gltf.nodes[globalState.currentMesh].position.y;
-    coordinates.z[0] = $gltf.nodes[globalState.currentMesh].position.z;
+    coordinates.x = [$gltf.nodes[globalState.currentMesh].position.x];
+    coordinates.y = [$gltf.nodes[globalState.currentMesh].position.y];
+    coordinates.z = [$gltf.nodes[globalState.currentMesh].position.z];
   });
 </script>
 

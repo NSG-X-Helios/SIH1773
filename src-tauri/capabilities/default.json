@@ -6,10 +6,7 @@
   "permissions": [
     "core:default",
     "fs:default",
-    "dialog:default",
     "fs:scope",
-    "fs:allow-read-text-file",
     "fs:allow-resource-read-recursive"
   ]
 }
-

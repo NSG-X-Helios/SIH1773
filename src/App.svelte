@@ -4,13 +4,8 @@
   import SidePanel from "$lib/components/sidepanel/SidePanel.svelte";
   import { globalState } from "$lib/state.svelte";
   import type { ThrelteGltf } from "@threlte/extras";
+  import { Gizmo } from "@threlte/extras";
   import { ARButton, VRButton } from "@threlte/xr";
-  import { resolveResource, resourceDir } from "@tauri-apps/api/path";
-  import { message } from "@tauri-apps/plugin-dialog";
-  (async () => {
-    const resourcePath = await resolveResource("resources/hello.txt");
-    await message(resourcePath);
-  })();
   let gltf: undefined | ThrelteGltf;
   let invalidate;
   let removeOutline;
@@ -35,6 +30,7 @@
     {#if globalState.isGLTFUploaded}
       <Canvas>
         <Scene bind:gltf bind:invalidate bind:removeOutline />
+        <Gizmo verticalPlacement={"top"} horizontalPlacement={"left"} />
       </Canvas>
       <VRButton onclick={() => (globalState.isFullScreen = true)} />
     {/if}

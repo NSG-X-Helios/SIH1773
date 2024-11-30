@@ -1,6 +1,6 @@
 export const globalState = $state({
   isGLTFUploaded: false,
-  gltfFile: "/models/txtr_output.glb",
+  gltfFile: "/models/model.glb",
   currentMesh: undefined,
   isFullScreen: false,
 });

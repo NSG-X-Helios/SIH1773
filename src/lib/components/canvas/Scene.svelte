@@ -7,7 +7,7 @@
   import { globalState } from "$lib/state.svelte";
   import Building from "$lib/components/canvas/Building.svelte";
   import { LineSegments } from "three";
-  let light: DirectionalLight;
+  let light: DirectionalLight = $state();
   interactivity();
   import { useThrelte } from "@threlte/core";
   const { invalidate: invalidateFunction } = useThrelte();
