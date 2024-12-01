@@ -20,13 +20,18 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost",
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$APPDATA", "$APPDATA/**"]
+      }
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all",
-    "resources": ["../resources"],
+    "targets": ["deb", "appimage", "msi", "nsis", "app", "dmg"],
+    "resources": ["resources/"],
+    "externalBin": ["binaries/convertor"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

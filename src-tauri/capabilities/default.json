@@ -9,6 +9,41 @@
     "fs:scope",
     "fs:allow-resource-read-recursive",
     "fs:allow-appdata-write-recursive",
-    "dialog:default"
+    "dialog:default",
+    "shell:default",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "args": [
+            {
+              "validator": "\\S+"
+            },
+            "--output",
+            {
+              "validator": "\\S+"
+            },
+            "--wall_texture",
+            {
+              "validator": "\\S+"
+            },
+            "--floor_texture",
+            {
+              "validator": "\\S+"
+            },
+            "--scale_factor",
+            {
+              "validator": "\\S+"
+            },
+            "--wall_height",
+            {
+              "validator": "\\S+"
+            }
+          ],
+          "name": "binaries/convertor",
+          "sidecar": true
+        }
+      ]
+    }
   ]
 }

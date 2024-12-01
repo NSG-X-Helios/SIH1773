@@ -7,45 +7,38 @@
   import * as Select from "$lib/components/ui/select";
   import { Box, Upload, Download } from "lucide-svelte";
   import { globalState } from "$lib/state.svelte";
-  import { writeFile } from "@tauri-apps/plugin-fs";
-  import { save } from "@tauri-apps/plugin-dialog";
+  import { appDataDir, resourceDir } from "@tauri-apps/api/path";
+  import { exists, mkdir, writeFile } from "@tauri-apps/plugin-fs";
+  import { message, save } from "@tauri-apps/plugin-dialog";
+  import { Command } from "@tauri-apps/plugin-shell";
+  import { convertFileSrc } from "@tauri-apps/api/core";
   let { gltf, invalidate } = $props();
-  let texture = $state("brick");
-  let scale = $state([1]);
-  let wallHeight = $state(3);
-  let files = $state();
+  let floorTexture = $state("concrete");
+  let wallTexture = $state("cookies");
+  let scale = $state([0.1]);
+  let wallHeight = $state(10);
+  let files: FileList = $state();
   let fileUpload: HTMLInputElement;
   const triggerFileUpload = () => {
     fileUpload.click();
   };
+  const validateWallHeight = () => {
+    if (wallHeight === null || wallHeight === undefined) {
+      wallHeight = 10;
+    } else {
+      wallHeight = Math.max(10, Math.min(50, +wallHeight));
+    }
+  };
+  let renderDisabled = $state(false);
   async function downloadFile(result) {
     const fileName = "xhelios3D.glb";
-    if (window.__TAURI__) {
-      // Tauri: Use file system APIs
-      try {
-        const filePath = await save({ defaultPath: fileName });
-        if (filePath) {
-          await writeFile(fileName, new Uint8Array(result));
-          alert(`File saved to ${filePath}`);
-        }
-      } catch (error) {
-        console.error("Error saving file in Tauri:", error);
+    try {
+      const filePath = await save({ defaultPath: fileName });
+      if (filePath) {
+        await writeFile(fileName, new Uint8Array(result));
       }
-    } else {
-      // Browser: Use URL.createObjectURL
-      try {
-        const link = document.createElement("a");
-        link.style.display = "none";
-        document.body.appendChild(link);
-        link.href = URL.createObjectURL(
-          new Blob([result], { type: "application/octet-stream" }),
-        );
-        link.download = fileName;
-        link.click();
-        document.body.removeChild(link); // Clean up
-      } catch (error) {
-        console.error("Error downloading file in browser:", error);
-      }
+    } catch (error) {
+      console.error("Error saving file in Tauri:", error);
     }
   }
   const downloadGLB = () => {
@@ -53,7 +46,7 @@
       const exporter = new GLTFExporter();
       exporter.parse(
         Object.values($gltf.nodes).map((node) => node.clone()),
-        downloadFile,
+        (result) => downloadFile(result as ArrayBuffer),
         (error) => console.log(error),
         {
           binary: true,
@@ -63,53 +56,145 @@
       );
     }
   };
+  const onRender = async () => {
+    if (files) {
+      renderDisabled = true;
+      const appDir = await appDataDir();
+      try {
+        const fileName = files[0].name;
+        const fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
+        const fileContent = await files[0].arrayBuffer();
+        const standardizedFileName = `${appDir}/output/blueprint2D.${fileExtension}`;
+        const doesOutputDirExists = await exists(`${appDir}/output/`);
+        if (!doesOutputDirExists) {
+          await mkdir(`${appDir}/output/`);
+        }
+        console.log(standardizedFileName);
+        await writeFile(standardizedFileName, new Uint8Array(fileContent));
+
+        globalState.isGLTFUploaded = false;
+        await convertTo3D(standardizedFileName);
+        const fileUrl = convertFileSrc(`${appDir}/output/model.glb`);
+        console.log(fileUrl);
+        globalState.gltfFile = fileUrl;
+        globalState.isGLTFUploaded = true;
+      } catch (error) {
+        console.error(
+          "Error occured when saving the file on the appData directory, report it to the developer",
+          error,
+        );
+      }
+      renderDisabled = false;
+    }
+  };
+  const convertTo3D = async (blueprintName: string) => {
+    const appDir = await appDataDir();
+    const resDir = (await resourceDir()) + "/resources";
+    console.log(resDir);
+    const outputDir = `${appDir}/output`;
+    const floor = `${resDir}/floor-texture/${floorTexture}.jpg`;
+    const wall = `${resDir}/wall-texture/${wallTexture}.jpg`;
+    const args = [
+      blueprintName,
+      "--output",
+      outputDir,
+      "--wall_texture",
+      wall,
+      "--floor_texture",
+      floor,
+      "--scale_factor",
+      String(scale[0]),
+      "--wall_height",
+      String(wallHeight),
+    ];
+    console.log(args);
+    const command = Command.sidecar("binaries/convertor", args);
+    const commandOutput = await command.execute();
+    console.log(commandOutput.stdout);
+  };
 </script>
 
 <div class="items-end flex justify-between gap-8">
-  <div class="w-full">
+  <div class="w-full space-y-2">
     <Label for="blueprint" class="text-lg font-semibold">Upload Blueprint</Label
     >
     <input
       type="file"
       id="blueprint"
       class="flex-grow border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      bind:this={fileUpload}
       bind:files
+      bind:this={fileUpload}
     />
   </div>
   <Button size="icon" onclick={triggerFileUpload}>
     <Upload />
   </Button>
 </div>
-<div>
-  <Label for="texture-selector" class="text-lg font-semibold">Texture</Label>
-  <Select.Root type="single" bind:value={texture}>
-    <Select.Trigger>{texture}</Select.Trigger>
+<div class="space-y-2">
+  <Label for="floor-texture-selector" class="text-lg font-semibold"
+    >Floor Texture</Label
+  >
+  <Select.Root type="single" bind:value={floorTexture}>
+    <Select.Trigger>{floorTexture}</Select.Trigger>
     <Select.Content>
       <Select.Item value="concrete" label="concrete">concrete</Select.Item>
-      <Select.Item value="brick" label="brick">brick</Select.Item>
-      <Select.Item value="wood" label="wood">wood</Select.Item>
+      <Select.Item value="herringbone-pavement" label="herringbone-pavement"
+        >herringbone pavement</Select.Item
+      >
+      <Select.Item value="laminate-floor" label="laminate-floor"
+        >laminate floor</Select.Item
+      >
+      <Select.Item value="patterned-brick" label="patterned-brick"
+        >patterned brick</Select.Item
+      >
+      <Select.Item value="plank-flooring" label="plank-flooring"
+        >plank flooring</Select.Item
+      >
     </Select.Content>
   </Select.Root>
 </div>
-<div>
-  <Label for="scaler" class="text-lg font-semibold">Scale</Label>
-  <Slider id="scaler" min={0.5} max={2} step={0.1} bind:value={scale} />
+<div class="space-y-2">
+  <Label for="wall-texture-selector" class="text-lg font-semibold"
+    >Wall Texture</Label
+  >
+  <Select.Root type="single" bind:value={wallTexture}>
+    <Select.Trigger>{wallTexture}</Select.Trigger>
+    <Select.Content>
+      <Select.Item value="black-patterned-brick" label="black-patterned-brick"
+        >black patterned brick</Select.Item
+      >
+      <Select.Item value="brown-brick" label="brown-brick"
+        >brown brick</Select.Item
+      >
+      <Select.Item value="cookies" label="cookies">cookies</Select.Item>
+      <Select.Item value="plank-wall" label="plank-wall">plank wall</Select.Item
+      >
+      <Select.Item value="synthetic-wood" label="synthetic-wood"
+        >synthetic wood</Select.Item
+      >
+    </Select.Content>
+  </Select.Root>
 </div>
-<div>
+
+<div class="space-y-2">
+  <Label for="scaler" class="text-lg font-semibold">Scale</Label>
+  <Slider id="scaler" min={0.1} max={10} step={0.5} bind:value={scale} />
+</div>
+<div class="space-y-2">
   <Label for="wall-count" class="text-lg font-semibold">Height of walls</Label>
   <Input
     type="number"
     id="wall-count"
     placeholder="Enter the wall height"
-    min="0"
+    min="10"
+    max="50"
+    onblur={validateWallHeight}
     bind:value={wallHeight}
   />
 </div>
 <Button
-  onclick={() => {
-    globalState.isGLTFUploaded = true;
-  }}
+  onclick={onRender}
+  disabled={renderDisabled}
   class="text-lg w-full font-medium"
 >
   <Box size={300} /> Render to 3D
