@@ -5,7 +5,9 @@
   import { Button } from "$lib/components/ui/button";
   import { Slider } from "$lib/components/ui/slider";
   import * as Select from "$lib/components/ui/select";
-  import { Box, Upload, Download } from "lucide-svelte";
+  import Box from "lucide-svelte/icons/box";
+  import Upload from "lucide-svelte/icons/upload";
+  import Download from "lucide-svelte/icons/download";
   import { globalState } from "$lib/state.svelte";
   import { appDataDir, resourceDir } from "@tauri-apps/api/path";
   import { exists, mkdir, writeFile } from "@tauri-apps/plugin-fs";

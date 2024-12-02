@@ -4,7 +4,7 @@
   import { Slider } from "$lib/components/ui/slider";
   import { Switch } from "$lib/components/ui/switch";
   import { Button } from "$lib/components/ui/button";
-  import { ArrowLeft } from "lucide-svelte";
+  import ArrowLeft from "lucide-svelte/icons/arrow-left";
   import { globalState } from "$lib/state.svelte";
   let { gltf, invalidate, removeOutline } = $props();
   let color = $state(
