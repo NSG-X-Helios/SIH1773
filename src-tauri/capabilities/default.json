@@ -17,27 +17,27 @@
         {
           "args": [
             {
-              "validator": "\\S+"
+              "validator": ".+"
             },
             "--output",
             {
-              "validator": "\\S+"
+              "validator": ".+"
             },
             "--wall_texture",
             {
-              "validator": "\\S+"
+              "validator": ".+"
             },
             "--floor_texture",
             {
-              "validator": "\\S+"
+              "validator": ".+"
             },
             "--scale_factor",
             {
-              "validator": "\\S+"
+              "validator": ".+"
             },
             "--wall_height",
             {
-              "validator": "\\S+"
+              "validator": ".+"
             }
           ],
           "name": "binaries/convertor",

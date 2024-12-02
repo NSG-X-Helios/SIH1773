@@ -67,7 +67,7 @@
         const standardizedFileName = `${appDir}/output/blueprint2D.${fileExtension}`;
         const doesOutputDirExists = await exists(`${appDir}/output/`);
         if (!doesOutputDirExists) {
-          await mkdir(`${appDir}/output/`);
+          await mkdir(`${appDir}/output/`, { recursive: true });
         }
         console.log(standardizedFileName);
         await writeFile(standardizedFileName, new Uint8Array(fileContent));
