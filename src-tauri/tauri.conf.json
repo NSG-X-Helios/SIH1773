@@ -20,7 +20,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost",
+      "csp": "default-src 'self' tauri://localhost ipc: ipc://localhost asset://localhost http://asset.localhost blob:; img-src 'self' tauri://localhost asset://localhost http://asset.localhost; connect-src 'self' tauri://localhost ipc://localhost asset://localhost http://asset.localhost blob:",
       "assetProtocol": {
         "enable": true,
         "scope": ["$APPDATA", "$APPDATA/**"]
