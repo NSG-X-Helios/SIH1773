@@ -22,7 +22,9 @@
   const tweenedProgress = tweened($progress, {
     duration: 150,
   });
-  $: tweenedProgress.set($progress);
+  $effect(() => {
+    tweenedProgress.set($progress);
+  });
 </script>
 
 <svelte:document onkeyup={goFullScreen} />
@@ -59,9 +61,9 @@
 </main>
 
 <style>
-  div.main {
-    height: 100%;
-  }
+  /* div.main { */
+  /*   height: 100%; */
+  /* } */
   .wrapper {
     position: absolute;
     width: 100%;
