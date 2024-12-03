@@ -3,4 +3,5 @@ export const globalState = $state({
   gltfFile: "",
   currentMesh: undefined,
   isFullScreen: false,
+  isRendering: false,
 });

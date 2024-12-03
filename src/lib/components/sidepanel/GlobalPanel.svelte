@@ -32,7 +32,7 @@
     }
   };
   let renderDisabled = $state(false);
-  async function downloadFile(result) {
+  async function downloadFile(result: ArrayBuffer) {
     const fileName = "xhelios3D.glb";
     try {
       const filePath = await save({ defaultPath: fileName });
@@ -61,8 +61,8 @@
   const onRender = async () => {
     if (files) {
       renderDisabled = true;
-      const appDir = await appDataDir();
       try {
+        const appDir = await appDataDir();
         const fileName = files[0].name;
         const fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
         const fileContent = await files[0].arrayBuffer();
@@ -75,11 +75,13 @@
         await writeFile(standardizedFileName, new Uint8Array(fileContent));
 
         globalState.isGLTFUploaded = false;
+        globalState.isRendering = true;
         await convertTo3D(standardizedFileName);
         const fileUrl = convertFileSrc(`${appDir}/output/model.glb`);
         console.log(fileUrl);
         globalState.gltfFile = fileUrl;
         globalState.isGLTFUploaded = true;
+        globalState.isRendering = false;
       } catch (error) {
         console.error(
           "Error occured when saving the file on the appData directory, report it to the developer",
@@ -199,7 +201,12 @@
   disabled={renderDisabled}
   class="text-lg w-full font-medium"
 >
-  <Box size={300} /> Render to 3D
+  {#if globalState.isRendering}
+    <!-- Loading indicator -->
+    Loading...
+  {:else}
+    <Box size={300} /> Render to 3D
+  {/if}
 </Button>
 <Button
   class="text-lg w-full font-medium"
