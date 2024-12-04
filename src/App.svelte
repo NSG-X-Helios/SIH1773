@@ -21,9 +21,18 @@
   };
 
   const { progress } = useProgress();
+<<<<<<< HEAD
   const tweenedProgress = tweened(0, { duration: 150 });
 
   $: tweenedProgress.set($progress);
+=======
+  const tweenedProgress = tweened($progress, {
+    duration: 150,
+  });
+  $effect(() => {
+    tweenedProgress.set($progress);
+  });
+>>>>>>> 9dfc2cf93fa272224c0393770c666d3a3eaf84e4
 </script>
 
 <svelte:document onkeyup={goFullScreen} />
@@ -63,6 +72,12 @@
 </main>
 
 <style>
+  <<<<<<< HEAD
+=======
+  /* div.main { */
+  /*   height: 100%; */
+  /* } */
+>>>>>>> 9dfc2cf93fa272224c0393770c666d3a3eaf84e4
   .wrapper {
     position: absolute;
     width: 100%;

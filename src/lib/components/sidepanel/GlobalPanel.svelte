@@ -117,7 +117,7 @@
     console.log(args);
     const command = Command.sidecar("binaries/convertor", args);
     const commandOutput = await command.execute();
-    console.log(commandOutput.stdout);
+    console.log(commandOutput);
   };
 </script>
 

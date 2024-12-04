@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { threeMinifier } from "@yushijinhun/three-minifier-rollup";
-// import mkcert from "vite-plugin-mkcert";
 import path from "path";
 
 const host = process.env.TAURI_DEV_HOST;
