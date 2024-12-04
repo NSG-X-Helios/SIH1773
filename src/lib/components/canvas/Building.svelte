@@ -26,6 +26,6 @@
 
 {#if $gltf}
   {#each Object.entries($gltf.nodes) as [key, node]}
-    <T is={node} ondblclick={(e) => myFunc(key, e)}></T>
+    <T is={node} ondblclick={(e: MouseEvent) => myFunc(key, e)}></T>
   {/each}
 {/if}

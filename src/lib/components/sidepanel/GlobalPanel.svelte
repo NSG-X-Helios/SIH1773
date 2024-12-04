@@ -1,5 +1,6 @@
 <script lang="ts">
   import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
+  import { type Object3D as ThreeObject3D } from "three";
   import { Label } from "$lib/components/ui/label";
   import { Input } from "$lib/components/ui/input";
   import { Button } from "$lib/components/ui/button";
@@ -19,7 +20,7 @@
   let wallTexture = $state("cookies");
   let scale = $state([0.1]);
   let wallHeight = $state(10);
-  let files: FileList = $state();
+  let files: FileList | undefined = $state();
   let fileUpload: HTMLInputElement;
   const triggerFileUpload = () => {
     fileUpload.click();
@@ -47,7 +48,9 @@
     if ($gltf) {
       const exporter = new GLTFExporter();
       exporter.parse(
-        Object.values($gltf.nodes).map((node) => node.clone()),
+        Object.values($gltf.nodes).map((node) =>
+          (node as ThreeObject3D).clone(),
+        ),
         (result) => downloadFile(result as ArrayBuffer),
         (error) => console.log(error),
         {

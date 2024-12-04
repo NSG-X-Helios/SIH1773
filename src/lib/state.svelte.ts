@@ -1,7 +1,7 @@
 export const globalState = $state({
   isGLTFUploaded: false,
   gltfFile: "",
-  currentMesh: undefined,
+  currentMesh: "" as string | null,
   isFullScreen: false,
   isRendering: false,
 });

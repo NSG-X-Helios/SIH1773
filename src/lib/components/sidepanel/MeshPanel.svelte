@@ -8,34 +8,73 @@
   import { globalState } from "$lib/state.svelte";
   let { gltf, invalidate, removeOutline } = $props();
   let color = $state(
-    `#${$gltf.nodes[globalState.currentMesh].material.color.getHexString()}`,
+    globalState.currentMesh !== null
+      ? `#${$gltf.nodes[globalState.currentMesh].material.color.getHexString()}`
+      : "#000000",
   );
-  let visibility = $state($gltf.nodes[globalState.currentMesh].visible);
+  let visibility = $state(
+    globalState.currentMesh !== null
+      ? $gltf.nodes[globalState.currentMesh].visible
+      : false,
+  );
   let scale = $state({
-    x: [$gltf.nodes[globalState.currentMesh].scale.x],
-    y: [$gltf.nodes[globalState.currentMesh].scale.y],
-    z: [$gltf.nodes[globalState.currentMesh].scale.z],
+    x: [
+      globalState.currentMesh !== null
+        ? $gltf.nodes[globalState.currentMesh].scale.x
+        : 1,
+    ],
+    y: [
+      globalState.currentMesh !== null
+        ? $gltf.nodes[globalState.currentMesh].scale.y
+        : 1,
+    ],
+    z: [
+      globalState.currentMesh !== null
+        ? $gltf.nodes[globalState.currentMesh].scale.z
+        : 1,
+    ],
   });
   let coordinates = $state({
-    x: [$gltf.nodes[globalState.currentMesh].position.x],
-    y: [$gltf.nodes[globalState.currentMesh].position.y],
-    z: [$gltf.nodes[globalState.currentMesh].position.z],
+    x: [
+      globalState.currentMesh !== null
+        ? $gltf.nodes[globalState.currentMesh].position.x
+        : 0,
+    ],
+    y: [
+      globalState.currentMesh !== null
+        ? $gltf.nodes[globalState.currentMesh].position.y
+        : 0,
+    ],
+    z: [
+      globalState.currentMesh !== null
+        ? $gltf.nodes[globalState.currentMesh].position.z
+        : 0,
+    ],
   });
   $effect(() => {
-    color = `#${$gltf.nodes[globalState.currentMesh].material.color.getHexString()}`;
+    if (globalState.currentMesh !== null) {
+      color = `#${$gltf.nodes[globalState.currentMesh].material.color.getHexString()}`;
+    }
   });
   $effect(() => {
-    visibility = $gltf.nodes[globalState.currentMesh].visible;
+    visibility =
+      globalState.currentMesh !== null
+        ? $gltf.nodes[globalState.currentMesh].visible
+        : false;
   });
   $effect(() => {
-    scale.x = [$gltf.nodes[globalState.currentMesh].scale.x];
-    scale.y = [$gltf.nodes[globalState.currentMesh].scale.y];
-    scale.z = [$gltf.nodes[globalState.currentMesh].scale.z];
+    if (globalState.currentMesh !== null) {
+      scale.x = [$gltf.nodes[globalState.currentMesh].scale.x];
+      scale.y = [$gltf.nodes[globalState.currentMesh].scale.y];
+      scale.z = [$gltf.nodes[globalState.currentMesh].scale.z];
+    }
   });
   $effect(() => {
-    coordinates.x = [$gltf.nodes[globalState.currentMesh].position.x];
-    coordinates.y = [$gltf.nodes[globalState.currentMesh].position.y];
-    coordinates.z = [$gltf.nodes[globalState.currentMesh].position.z];
+    if (globalState.currentMesh !== null) {
+      coordinates.x = [$gltf.nodes[globalState.currentMesh].position.x];
+      coordinates.y = [$gltf.nodes[globalState.currentMesh].position.y];
+      coordinates.z = [$gltf.nodes[globalState.currentMesh].position.z];
+    }
   });
 </script>
 
@@ -45,7 +84,7 @@
     class="mb-4 p-0 h-auto font-normal"
     onclick={() => {
       removeOutline(globalState.currentMesh);
-      globalState.currentMesh = undefined;
+      globalState.currentMesh = null;
       invalidate();
     }}
   >
@@ -68,8 +107,10 @@
             step={0.5}
             value={scale.x}
             onValueCommit={(value) => {
-              $gltf.nodes[globalState.currentMesh].scale.x =
-                $state.snapshot(value)[0];
+              if (globalState.currentMesh !== null) {
+                $gltf.nodes[globalState.currentMesh].scale.x =
+                  $state.snapshot(value)[0];
+              }
               invalidate();
             }}
           />
@@ -83,8 +124,10 @@
             step={0.5}
             value={scale.y}
             onValueCommit={(value) => {
-              $gltf.nodes[globalState.currentMesh].scale.y =
-                $state.snapshot(value)[0];
+              if (globalState.currentMesh !== null) {
+                $gltf.nodes[globalState.currentMesh].scale.y =
+                  $state.snapshot(value)[0];
+              }
               invalidate();
             }}
           />
@@ -98,8 +141,10 @@
             step={0.5}
             value={scale.z}
             onValueCommit={(value) => {
-              $gltf.nodes[globalState.currentMesh].scale.z =
-                $state.snapshot(value)[0];
+              if (globalState.currentMesh !== null) {
+                $gltf.nodes[globalState.currentMesh].scale.z =
+                  $state.snapshot(value)[0];
+              }
               invalidate();
             }}
           />
@@ -114,11 +159,16 @@
         id="mesh-color"
         bind:value={color}
         oninput={(e) => {
-          const value = e.target.value;
-          $gltf.nodes[globalState.currentMesh].material.color.set(
-            $state.snapshot(value),
-          );
-          invalidate();
+          const target = e.target;
+          if (target) {
+            const value = (target as HTMLInputElement).value;
+            if (globalState.currentMesh !== null) {
+              $gltf.nodes[globalState.currentMesh].material.color.set(
+                $state.snapshot(value),
+              );
+              invalidate();
+            }
+          }
         }}
       />
     </div>
@@ -128,9 +178,11 @@
         id="visibility"
         bind:checked={visibility}
         onCheckedChange={(checked) => {
-          $gltf.nodes[globalState.currentMesh].visible =
-            $state.snapshot(checked);
-          invalidate();
+          if (globalState.currentMesh !== null) {
+            $gltf.nodes[globalState.currentMesh].visible =
+              $state.snapshot(checked);
+            invalidate();
+          }
         }}
       />
       <Label for="visibility" class="text-lg font-semibold">Visibility</Label>
@@ -164,9 +216,11 @@
             step={0.5}
             value={coordinates.x}
             onValueCommit={(value) => {
-              $gltf.nodes[globalState.currentMesh].position.x =
-                $state.snapshot(value)[0];
-              invalidate();
+              if (globalState.currentMesh !== null) {
+                $gltf.nodes[globalState.currentMesh].position.x =
+                  $state.snapshot(value)[0];
+                invalidate();
+              }
             }}
           />
         </div>
@@ -181,9 +235,11 @@
             step={0.5}
             value={coordinates.y}
             onValueCommit={(value) => {
-              $gltf.nodes[globalState.currentMesh].position.y =
-                $state.snapshot(value)[0];
-              invalidate();
+              if (globalState.currentMesh !== null) {
+                $gltf.nodes[globalState.currentMesh].position.y =
+                  $state.snapshot(value)[0];
+                invalidate();
+              }
             }}
           />
         </div>
@@ -198,9 +254,11 @@
             step={0.5}
             value={coordinates.z}
             onValueCommit={(value) => {
-              $gltf.nodes[globalState.currentMesh].position.z =
-                $state.snapshot(value)[0];
-              invalidate();
+              if (globalState.currentMesh !== null) {
+                $gltf.nodes[globalState.currentMesh].position.z =
+                  $state.snapshot(value)[0];
+                invalidate();
+              }
             }}
           />
         </div>

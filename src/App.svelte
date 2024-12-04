@@ -9,6 +9,7 @@
   import { tweened } from "svelte/motion";
   import { useProgress } from "@threlte/extras";
   import { fade } from "svelte/transition";
+
   let gltf: ThrelteGltf | undefined = undefined;
   let invalidate: (() => void) | undefined = undefined;
   let removeOutline: (() => void) | undefined = undefined;
@@ -18,10 +19,10 @@
       globalState.isFullScreen = !globalState.isFullScreen;
     }
   };
+
   const { progress } = useProgress();
-  const tweenedProgress = tweened($progress, {
-    duration: 150,
-  });
+  const tweenedProgress = tweened(0, { duration: 150 });
+
   $: tweenedProgress.set($progress);
 </script>
 
@@ -35,16 +36,19 @@
     class:w-full={globalState.isFullScreen}
     class:w-[65%]={!globalState.isFullScreen}
   >
-    {#if globalState.isRendering && $tweenedProgress < 1}
+    {#if globalState.isRendering}
       <div
         transition:fade|local={{
           duration: 200,
         }}
         class="wrapper"
       >
-        <p class="loading">Loading</p>
+        <p class="loading">Loading...</p>
         <div class="bar-wrapper">
-          <div class="bar" style="width: {$tweenedProgress * 100}%"></div>
+          <div
+            class="bar"
+            style="width: {($tweenedProgress || 0) * 100}%;"
+          ></div>
         </div>
       </div>
     {/if}
@@ -59,9 +63,6 @@
 </main>
 
 <style>
-  div.main {
-    height: 100%;
-  }
   .wrapper {
     position: absolute;
     width: 100%;
@@ -71,23 +72,40 @@
     background-color: white;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.5rem;
     align-items: center;
     justify-content: center;
     color: black;
   }
   .loading {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    animation: pulse 1.5s infinite;
   }
   .bar-wrapper {
-    width: 33.333333%;
-    height: 10px;
-    border: 1px solid black;
+    width: 50%;
+    height: 12px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f5f5f5;
     position: relative;
   }
   .bar {
     height: 100%;
-    background-color: black;
+    transition: width 0.15s ease-in-out;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 1;
+    }
   }
 </style>
