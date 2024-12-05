@@ -10,8 +10,8 @@
   import Download from "lucide-svelte/icons/download";
   import { globalState } from "$lib/state.svelte";
   import { appDataDir, resourceDir } from "@tauri-apps/api/path";
-  import { exists, mkdir, writeFile } from "@tauri-apps/plugin-fs";
-  import { message, save } from "@tauri-apps/plugin-dialog";
+  import { exists, mkdir, remove, writeFile } from "@tauri-apps/plugin-fs";
+  import { save, ask, message } from "@tauri-apps/plugin-dialog";
   import { Command } from "@tauri-apps/plugin-shell";
   import { convertFileSrc } from "@tauri-apps/api/core";
   import DoorImage from "$src/assets/img/door.png?enhanced";
@@ -35,7 +35,7 @@
     }
   };
   let renderDisabled = $state(false);
-  async function downloadFile(result: ArrayBuffer) {
+  const downloadFile = async (result: ArrayBuffer) => {
     const fileName = "xhelios3D.glb";
     try {
       const filePath = await save({ defaultPath: fileName });
@@ -47,7 +47,7 @@
     } catch (error) {
       console.error("Error saving file in Tauri:", error);
     }
-  }
+  };
   const collectScene = () => {
     const nodes = Object.values($gltf.nodes).map((node) => node.clone());
     if ($doorGltf) {
@@ -104,11 +104,60 @@
       );
     }
   };
+  const saveFloorGLB = async (appFloorDir: string, result: ArrayBuffer) => {
+    const fileName = `floor${globalState.floorCount}.glb`;
+    const filePath = `${appFloorDir}/${fileName}`;
+    try {
+      await writeFile(filePath, new Uint8Array(result));
+      console.log(`floor ${filePath} saved!`);
+    } catch (error) {
+      console.error("Error saving file in the floorDirectory", error);
+    }
+  };
   const onRender = async () => {
     if (files) {
+      const appDir = await appDataDir();
+      console.log(appDir);
       renderDisabled = true;
+      let isLayering = false;
+      if (globalState.floorCount > 0) {
+        isLayering = await ask(
+          "Do you want to add floors on top of existing ones?",
+          {
+            kind: "info",
+          },
+        );
+      }
+      globalState.isRendering = true;
+      if (!isLayering) {
+        const doesFloorDirExists = await exists(`${appDir}/output/floors/`);
+        if (doesFloorDirExists) {
+          await remove(`${appDir}/output/floors/`, { recursive: true });
+        }
+        await mkdir(`${appDir}/output/floors/`, { recursive: true });
+        globalState.floorCount = 0;
+      }
+      if (isLayering && globalState.floorCount > 0) {
+        if ($gltf) {
+          const exporter = new GLTFExporter();
+          exporter.parse(
+            collectScene(),
+            async (result) => {
+              await saveFloorGLB(
+                `${appDir}/output/floors`,
+                result as ArrayBuffer,
+              );
+            },
+            (error) => console.log(error),
+            {
+              binary: true,
+              includeCustomExtensions: true,
+              onlyVisible: false,
+            },
+          );
+        }
+      }
       try {
-        const appDir = await appDataDir();
         const fileName = files[0].name;
         const fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
         const fileContent = await files[0].arrayBuffer();
@@ -120,7 +169,6 @@
         await writeFile(standardizedFileName, new Uint8Array(fileContent));
 
         globalState.isGLTFUploaded = false;
-        globalState.isRendering = true;
         await convertTo3D(standardizedFileName);
         const fileUrl = convertFileSrc(`${appDir}/output/model.glb`);
         console.log(fileUrl);
@@ -130,6 +178,9 @@
         globalState.doors = {};
         globalState.windows = {};
         globalState.stairs = {};
+        globalState.floorCount += 1;
+        files = undefined;
+        fileUpload.value = "";
       } catch (error) {
         console.error(
           "Error occured when saving the file on the appData directory, report it to the developer",
@@ -137,6 +188,10 @@
         );
       }
       renderDisabled = false;
+    } else {
+      await message("Please upload a blueprint", {
+        kind: "error",
+      });
     }
   };
   const convertTo3D = async (blueprintName: string) => {
@@ -244,51 +299,52 @@
     bind:value={wallHeight}
   />
 </div>
-<div class="flex w-full justify-between box-border">
-  <div
-    class="border border-black flex flex-col items-center p-3 rounded-3xl"
-    role="button"
-    onclick={() => {
-      globalState.currentAsset = "doors";
-    }}
-    onkeyup={() => {
-      globalState.currentAsset = "doors";
-    }}
-    tabindex={0}
-  >
-    <enhanced:img class="w-36 h-36 rounded-2xl" src={DoorImage} alt="" />
-    <p class="text-lg font-semibold">Door</p>
+{#if globalState.isGLTFUploaded}
+  <div class="flex w-full justify-between box-border">
+    <div
+      class="border border-black flex flex-col items-center p-3 rounded-3xl"
+      role="button"
+      onclick={() => {
+        globalState.currentAsset = "doors";
+      }}
+      onkeyup={() => {
+        globalState.currentAsset = "doors";
+      }}
+      tabindex={0}
+    >
+      <enhanced:img class="w-36 h-36 rounded-2xl" src={DoorImage} alt="" />
+      <p class="text-lg font-semibold">Door</p>
+    </div>
+    <div
+      class="border border-black flex flex-col items-center p-3 rounded-3xl"
+      role="button"
+      onclick={() => {
+        globalState.currentAsset = "windows";
+      }}
+      onkeyup={() => {
+        globalState.currentAsset = "windows";
+      }}
+      tabindex={0}
+    >
+      <enhanced:img class="w-36 h-36 rounded-2xl" src={WindowImage} alt="" />
+      <p class="text-lg font-semibold">Window</p>
+    </div>
+    <div
+      class="border border-black flex flex-col items-center p-3 rounded-3xl"
+      role="button"
+      onclick={() => {
+        globalState.currentAsset = "stairs";
+      }}
+      onkeyup={() => {
+        globalState.currentAsset = "stairs";
+      }}
+      tabindex={0}
+    >
+      <enhanced:img class="w-36 h-36 rounded-2xl" src={StairsImage} alt="" />
+      <p class="text-lg font-semibold">Stairs</p>
+    </div>
   </div>
-  <div
-    class="border border-black flex flex-col items-center p-3 rounded-3xl"
-    role="button"
-    onclick={() => {
-      globalState.currentAsset = "windows";
-    }}
-    onkeyup={() => {
-      globalState.currentAsset = "windows";
-    }}
-    tabindex={0}
-  >
-    <enhanced:img class="w-36 h-36 rounded-2xl" src={WindowImage} alt="" />
-    <p class="text-lg font-semibold">Window</p>
-  </div>
-  <div
-    class="border border-black flex flex-col items-center p-3 rounded-3xl"
-    role="button"
-    onclick={() => {
-      globalState.currentAsset = "stairs";
-    }}
-    onkeyup={() => {
-      globalState.currentAsset = "stairs";
-    }}
-    tabindex={0}
-  >
-    <enhanced:img class="w-36 h-36 rounded-2xl" src={StairsImage} alt="" />
-    <p class="text-lg font-semibold">Stairs</p>
-  </div>
-</div>
-
+{/if}
 <Button
   onclick={onRender}
   disabled={renderDisabled}
@@ -298,7 +354,7 @@
     <!-- Loading indicator -->
     Loading...
   {:else}
-    <Box size={300} /> Render to 3D
+    <Box size={300} /> Add Floor
   {/if}
 </Button>
 <Button
