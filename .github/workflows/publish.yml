@@ -78,7 +78,7 @@ jobs:
           python --version
           # pip install --upgrade pip
           pip install -r requirements.txt
-          pnpm run convertor-pipeline
+          pnpm run convertor-pipeline:run
 
       - name: Build convertor in linux/mac
         if: matrix.platform == 'ubuntu-22.04' || matrix.platform == 'macos-latest'
@@ -89,7 +89,7 @@ jobs:
           python --version
           # pip install --upgrade pip
           pip install -r requirements.txt
-          pnpm run convertor-pipeline
+          pnpm run convertor-pipeline:run
 
       - uses: tauri-apps/tauri-action@v0
         env:
