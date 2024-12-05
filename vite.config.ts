@@ -1,15 +1,17 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { threeMinifier } from "@yushijinhun/three-minifier-rollup";
+import { enhancedImages } from "@sveltejs/enhanced-img";
 import path from "path";
 
 const host = process.env.TAURI_DEV_HOST;
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [{ ...threeMinifier(), enforce: "pre" }, svelte()],
+  plugins: [{ ...threeMinifier(), enforce: "pre" }, enhancedImages(), svelte()],
   resolve: {
     alias: {
       $lib: path.resolve("./src/lib"),
+      $src: path.resolve("./src"),
     },
   },
   // prevent vite from obscuring rust errors

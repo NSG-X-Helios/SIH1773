@@ -9,19 +9,34 @@
   import { LineSegments, PerspectiveCamera, Box3, Vector3 } from "three";
   import { useThrelte } from "@threlte/core";
   import { onMount, onDestroy } from "svelte";
+  const dracoLoader = useDraco("/decoders/");
 
   let light: DirectionalLight | undefined = $state();
   interactivity();
 
-  const { invalidate: invalidateFunction } = useThrelte();
+  const {
+    invalidate: invalidateFunction,
+    camera: cameraCtx,
+    scene: sceneCtx,
+  } = useThrelte();
+
   let {
     gltf = $bindable(),
     invalidate = $bindable(),
     removeOutline = $bindable(),
+    camera = $bindable(),
+    scene = $bindable(),
+    doorGltf = $bindable(),
+    windowGltf = $bindable(),
+    stairGltf = $bindable(),
   } = $props();
-  const dracoLoader = useDraco("/decoders/");
   gltf = useGltf(globalState.gltfFile, { dracoLoader });
   invalidate = invalidateFunction;
+  camera = cameraCtx;
+  scene = sceneCtx;
+  doorGltf = useGltf("/models/door.glb", { dracoLoader });
+  windowGltf = useGltf("/models/window.glb", { dracoLoader });
+  stairGltf = useGltf("/models/stairs.glb", { dracoLoader });
 
   removeOutline = (wall: string) => {
     if ($gltf) {
@@ -34,11 +49,10 @@
     }
   };
 
-  let camera: PerspectiveCamera | undefined = $state();
+  let perspectiveCameraRef: PerspectiveCamera | undefined = $state();
   let move = { forward: false, backward: false, left: false, right: false };
   const speed = 0.6;
   const playerBox = new Box3();
-  const tempVector = new Vector3();
 
   const handleKeyDown = (e: KeyboardEvent) => {
     switch (e.key.toLocaleLowerCase()) {
@@ -96,10 +110,10 @@
     if (move.left) direction.x -= speed;
     if (move.right) direction.x += speed;
 
-    if (camera) {
-      const newPosition = camera.position.clone().add(direction);
+    if (perspectiveCameraRef) {
+      const newPosition = perspectiveCameraRef.position.clone().add(direction);
       if (!checkCollision(newPosition)) {
-        camera.position.copy(newPosition);
+        perspectiveCameraRef.position.copy(newPosition);
         invalidate();
       }
     }
@@ -125,7 +139,7 @@
 </script>
 
 <T.PerspectiveCamera
-  bind:ref={camera}
+  bind:ref={perspectiveCameraRef}
   makeDefault
   position={[20, 12, 10]}
   oncreate={(ref) => ref.lookAt(1, 1, 0)}
@@ -139,7 +153,14 @@
 
 <T.DirectionalLightHelper args={[light, 1, 0x000000]} />
 
-<Building {gltf} {removeOutline} {invalidate} />
+<Building
+  {gltf}
+  {removeOutline}
+  {invalidate}
+  {doorGltf}
+  {windowGltf}
+  {stairGltf}
+/>
 
 <XR>
   <Controller left />

@@ -1,8 +1,12 @@
 <script lang="ts">
   import { T } from "@threlte/core";
   import { EdgesGeometry, LineBasicMaterial, LineSegments } from "three";
+  import Door from "$lib/components/models/Door.svelte";
+  import Window from "$lib/components/models/Window.svelte";
+  import Stairs from "$lib/components/models/Stairs.svelte";
   import { globalState } from "$lib/state.svelte";
-  const { gltf, removeOutline, invalidate } = $props();
+  const { gltf, removeOutline, invalidate, doorGltf, windowGltf, stairGltf } =
+    $props();
   const lineMaterial = new LineBasicMaterial({
     color: 0xffff00,
     linewidth: 5,
@@ -24,8 +28,25 @@
   };
 </script>
 
-{#if $gltf}
-  {#each Object.entries($gltf.nodes) as [key, node]}
-    <T is={node} ondblclick={(e: MouseEvent) => myFunc(key, e)}></T>
+{#if $stairGltf}
+  {#each Object.keys(globalState.stairs) as id (id)}
+    <Stairs {id} {stairGltf} />
   {/each}
+{/if}
+{#if $doorGltf}
+  {#each Object.keys(globalState.doors) as id (id)}
+    <Door {id} {doorGltf} />
+  {/each}
+{/if}
+{#if $windowGltf}
+  {#each Object.keys(globalState.windows) as id (id)}
+    <Window {id} {windowGltf} />
+  {/each}
+{/if}
+{#if $gltf}
+  <T.Group>
+    {#each Object.entries($gltf.nodes) as [key, node]}
+      <T is={node} ondblclick={(e: MouseEvent) => myFunc(key, e)}></T>
+    {/each}
+  </T.Group>
 {/if}

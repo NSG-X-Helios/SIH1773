@@ -4,4 +4,8 @@ export const globalState = $state({
   currentMesh: "" as string | null,
   isFullScreen: false,
   isRendering: false,
+  currentAsset: undefined,
+  doors: {},
+  stairs: {},
+  windows: {},
 });

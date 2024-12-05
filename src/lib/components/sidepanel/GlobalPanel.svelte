@@ -1,6 +1,5 @@
 <script lang="ts">
   import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
-  import { type Object3D as ThreeObject3D } from "three";
   import { Label } from "$lib/components/ui/label";
   import { Input } from "$lib/components/ui/input";
   import { Button } from "$lib/components/ui/button";
@@ -15,7 +14,10 @@
   import { message, save } from "@tauri-apps/plugin-dialog";
   import { Command } from "@tauri-apps/plugin-shell";
   import { convertFileSrc } from "@tauri-apps/api/core";
-  let { gltf, invalidate } = $props();
+  import DoorImage from "$src/assets/img/door.png?enhanced";
+  import WindowImage from "$src/assets/img/window.png?enhanced";
+  import StairsImage from "$src/assets/img/stairs.png?enhanced";
+  let { gltf, doorGltf, windowGltf, stairGltf } = $props();
   let floorTexture = $state("concrete");
   let wallTexture = $state("cookies");
   let scale = $state([0.1]);
@@ -38,19 +40,61 @@
     try {
       const filePath = await save({ defaultPath: fileName });
       if (filePath) {
-        await writeFile(fileName, new Uint8Array(result));
+        await writeFile(filePath, new Uint8Array(result));
+        await writeFile(filePath, new Uint8Array(result));
       }
+      console.log("export done!");
+      console.log("export done!");
     } catch (error) {
       console.error("Error saving file in Tauri:", error);
     }
   }
+  const collectScene = () => {
+    const nodes = Object.values($gltf.nodes).map((node) => node.clone());
+    if ($doorGltf) {
+      for (const coord of Object.values(globalState.doors)) {
+        const doorClone = $doorGltf.scene.clone();
+        doorClone.scale.x = 0.1;
+        doorClone.scale.y = 0.1;
+        doorClone.scale.z = 0.1;
+        doorClone.position.x = coord.x;
+        doorClone.position.y = coord.y;
+        doorClone.position.z = coord.z;
+        nodes.push(doorClone);
+      }
+    }
+    if ($windowGltf) {
+      for (const coord of Object.values(globalState.windows)) {
+        const windowClone = $windowGltf.scene.clone();
+        windowClone.scale.x = 5;
+        windowClone.scale.y = 5;
+        windowClone.scale.z = 5;
+        windowClone.position.x = coord.x;
+        windowClone.position.y = coord.y;
+        windowClone.position.z = coord.z;
+        nodes.push(windowClone);
+      }
+    }
+    if ($stairGltf) {
+      for (const coord of Object.values(globalState.stairs)) {
+        const stairClone = $stairGltf.scene.clone();
+        stairClone.scale.x = 0.1;
+        stairClone.scale.y = 0.1;
+        stairClone.scale.z = 0.1;
+        stairClone.position.x = coord.x;
+        stairClone.position.y = coord.y;
+        stairClone.position.z = coord.z;
+        nodes.push(stairClone);
+      }
+    }
+
+    return nodes;
+  };
   const downloadGLB = () => {
     if ($gltf) {
       const exporter = new GLTFExporter();
       exporter.parse(
-        Object.values($gltf.nodes).map((node) =>
-          (node as ThreeObject3D).clone(),
-        ),
+        collectScene(),
         (result) => downloadFile(result as ArrayBuffer),
         (error) => console.log(error),
         {
@@ -74,7 +118,6 @@
         if (!doesOutputDirExists) {
           await mkdir(`${appDir}/output/`, { recursive: true });
         }
-        console.log(standardizedFileName);
         await writeFile(standardizedFileName, new Uint8Array(fileContent));
 
         globalState.isGLTFUploaded = false;
@@ -85,6 +128,9 @@
         globalState.gltfFile = fileUrl;
         globalState.isGLTFUploaded = true;
         globalState.isRendering = false;
+        globalState.doors = {};
+        globalState.windows = {};
+        globalState.stairs = {};
       } catch (error) {
         console.error(
           "Error occured when saving the file on the appData directory, report it to the developer",
@@ -199,6 +245,51 @@
     bind:value={wallHeight}
   />
 </div>
+<div class="flex w-full justify-between box-border">
+  <div
+    class="border border-black flex flex-col items-center p-3 rounded-3xl"
+    role="button"
+    onclick={() => {
+      globalState.currentAsset = "doors";
+    }}
+    onkeyup={() => {
+      globalState.currentAsset = "doors";
+    }}
+    tabindex={0}
+  >
+    <enhanced:img class="w-36 h-36 rounded-2xl" src={DoorImage} alt="" />
+    <p class="text-lg font-semibold">Door</p>
+  </div>
+  <div
+    class="border border-black flex flex-col items-center p-3 rounded-3xl"
+    role="button"
+    onclick={() => {
+      globalState.currentAsset = "windows";
+    }}
+    onkeyup={() => {
+      globalState.currentAsset = "windows";
+    }}
+    tabindex={0}
+  >
+    <enhanced:img class="w-36 h-36 rounded-2xl" src={WindowImage} alt="" />
+    <p class="text-lg font-semibold">Window</p>
+  </div>
+  <div
+    class="border border-black flex flex-col items-center p-3 rounded-3xl"
+    role="button"
+    onclick={() => {
+      globalState.currentAsset = "stairs";
+    }}
+    onkeyup={() => {
+      globalState.currentAsset = "stairs";
+    }}
+    tabindex={0}
+  >
+    <enhanced:img class="w-36 h-36 rounded-2xl" src={StairsImage} alt="" />
+    <p class="text-lg font-semibold">Stairs</p>
+  </div>
+</div>
+
 <Button
   onclick={onRender}
   disabled={renderDisabled}

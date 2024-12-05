@@ -4,7 +4,9 @@
     "baseUrl": ".",
     "paths": {
       "$lib": ["./src/lib"],
-      "$lib/*": ["./src/lib/*"]
+      "$lib/*": ["./src/lib/*"],
+      "$src": ["./src"],
+      "$src/*": ["./src/*"]
     },
     "types": ["node"],
     "target": "ESNext",

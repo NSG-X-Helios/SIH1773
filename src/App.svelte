@@ -13,6 +13,11 @@
   let gltf: ThrelteGltf | undefined = undefined;
   let invalidate: (() => void) | undefined = undefined;
   let removeOutline: (() => void) | undefined = undefined;
+  let camera;
+  let scene;
+  let doorGltf;
+  let windowGltf;
+  let stairGltf;
   const goFullScreen = (event: KeyboardEvent) => {
     if (globalState.isGLTFUploaded && event.ctrlKey && event.key === "q") {
       event.preventDefault();
@@ -21,20 +26,60 @@
   };
 
   const { progress } = useProgress();
-  const tweenedProgress = tweened(0, { duration: 150 });
-
+  const tweenedProgress = tweened($progress, {
+    duration: 150,
+  });
   $: tweenedProgress.set($progress);
+  import { Raycaster, Vector2 } from "three";
+  const raycaster = new Raycaster();
+  const mouse = new Vector2();
+
+  const onCanvasClick = (event) => {
+    event.stopPropagation();
+    const canvas = event.target;
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, $camera);
+    const intersects = raycaster.intersectObjects(scene.children);
+    const generateUniqueString = () => {
+      const timestamp = Date.now().toString(36); // Base-36 encoding of current timestamp
+      const random = Math.random().toString(36).substring(2, 10); // Random base-36 string
+      return `${timestamp}-${random}`;
+    };
+    if (intersects.length > 0) {
+      const intersection = intersects[0];
+      globalState[globalState.currentAsset][generateUniqueString()] =
+        intersection.point;
+    }
+    globalState.currentAsset = undefined;
+  };
 </script>
 
 <svelte:document onkeyup={goFullScreen} />
 <main class="h-screen w-screen items-center justify-center flex">
   <div class="h-full w-[35%]" class:hidden={globalState.isFullScreen}>
-    <SidePanel {gltf} {invalidate} {removeOutline} />
+    <SidePanel
+      {gltf}
+      {invalidate}
+      {removeOutline}
+      {doorGltf}
+      {windowGltf}
+      {stairGltf}
+    />
   </div>
   <div
     class="h-full flex items-center justify-center"
     class:w-full={globalState.isFullScreen}
     class:w-[65%]={!globalState.isFullScreen}
+    onclick={(e) => {
+      if (globalState.currentAsset) onCanvasClick(e);
+    }}
+    onkeyup={(e) => {
+      if (globalState.currentAsset) onCanvasClick(e);
+    }}
+    role="button"
+    tabindex="0"
   >
     {#if globalState.isRendering}
       <div
@@ -54,7 +99,16 @@
     {/if}
     {#if globalState.isGLTFUploaded}
       <Canvas>
-        <Scene bind:gltf bind:invalidate bind:removeOutline />
+        <Scene
+          bind:gltf
+          bind:invalidate
+          bind:removeOutline
+          bind:camera
+          bind:scene
+          bind:doorGltf
+          bind:windowGltf
+          bind:stairGltf
+        />
         <Gizmo verticalPlacement={"top"} horizontalPlacement={"left"} />
       </Canvas>
       <VRButton onclick={() => (globalState.isFullScreen = true)} />
@@ -63,9 +117,6 @@
 </main>
 
 <style>
-  /* div.main { */
-  /*   height: 100%; */
-  /* } */
   .wrapper {
     position: absolute;
     width: 100%;
