@@ -44,7 +44,6 @@
         await writeFile(filePath, new Uint8Array(result));
       }
       console.log("export done!");
-      console.log("export done!");
     } catch (error) {
       console.error("Error saving file in Tauri:", error);
     }

@@ -53,7 +53,7 @@ import fs from "fs";
       dedup(), // Remove duplicate vertex or texture data.
       prune(), // Remove unused nodes, textures, or other data.
       textureCompress({
-        targetFormat: "webp",
+        targetFormat: "jpeg",
         encoder: sharp,
         resize: [resolution, resolution], // Resize textures.
       }),
