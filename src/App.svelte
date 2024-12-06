@@ -146,9 +146,27 @@
     background-color: #f5f5f5;
     position: relative;
   }
+
   .bar {
     height: 100%;
+    background: linear-gradient(
+      90deg,
+      rgba(2, 0, 36, 0) 0%,
+      #000000 50%,
+      rgba(2, 0, 36, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: loading 2s infinite linear;
     transition: width 0.15s ease-in-out;
+  }
+
+  @keyframes loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
   }
 
   @keyframes pulse {

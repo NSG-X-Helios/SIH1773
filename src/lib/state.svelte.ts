@@ -8,4 +8,5 @@ export const globalState = $state({
   doors: {},
   stairs: {},
   windows: {},
+  floorCount: 0,
 });
