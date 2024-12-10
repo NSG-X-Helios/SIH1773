@@ -10,7 +10,14 @@
   import Download from "lucide-svelte/icons/download";
   import { globalState } from "$lib/state.svelte";
   import { appDataDir, resourceDir } from "@tauri-apps/api/path";
-  import { exists, mkdir, remove, writeFile } from "@tauri-apps/plugin-fs";
+  import {
+    copyFile,
+    exists,
+    mkdir,
+    readFile,
+    remove,
+    writeFile,
+  } from "@tauri-apps/plugin-fs";
   import { save, ask, message } from "@tauri-apps/plugin-dialog";
   import { Command } from "@tauri-apps/plugin-shell";
   import { convertFileSrc } from "@tauri-apps/api/core";
@@ -36,12 +43,16 @@
   };
   let renderDisabled = $state(false);
   const downloadFile = async (result: ArrayBuffer) => {
-    const fileName = "xhelios3D.glb";
+    const fileName = "final.glb";
+    const appDir = await appDataDir();
     try {
       const filePath = await save({ defaultPath: fileName });
+      // const finalGLBBuffer = await readFile(
+      //   `${appDir}/output/floors/final.glb`,
+      // );
       if (filePath) {
-        await writeFile(filePath, new Uint8Array(result));
-        await writeFile(filePath, new Uint8Array(result));
+        await copyFile(`${appDir}/output/floors/final.glb`, filePath);
+        // await writeFile(filePath, finalGLBBuffer);
       }
       console.log("export done!");
     } catch (error) {
@@ -94,7 +105,18 @@
       const exporter = new GLTFExporter();
       exporter.parse(
         collectScene(),
-        (result) => downloadFile(result as ArrayBuffer),
+        async (result) => {
+          const appDir = await appDataDir();
+          await saveFloorGLB(`${appDir}/output/floors`, result as ArrayBuffer);
+          const mountDir = `${appDir}/output`;
+          const commandOutput = await Command.create("exec-sh", [
+            "-c",
+            `docker run --rm -v ${mountDir}:/app/results 2d-to-3d-convertor stack-floors.py`,
+          ]).execute();
+          console.log(commandOutput);
+          downloadFile(result as ArrayBuffer);
+        },
+        // (result) => downloadFile(result as ArrayBuffer),
         (error) => console.log(error),
         {
           binary: true,
@@ -166,10 +188,11 @@
         if (!doesOutputDirExists) {
           await mkdir(`${appDir}/output/`, { recursive: true });
         }
+        const file = `blueprint2D.${fileExtension}`;
         await writeFile(standardizedFileName, new Uint8Array(fileContent));
 
         globalState.isGLTFUploaded = false;
-        await convertTo3D(standardizedFileName);
+        await convertTo3D(file);
         const fileUrl = convertFileSrc(`${appDir}/output/model.glb`);
         console.log(fileUrl);
         globalState.gltfFile = fileUrl;
@@ -196,28 +219,43 @@
   };
   const convertTo3D = async (blueprintName: string) => {
     const appDir = await appDataDir();
-    const resDir = (await resourceDir()) + "/resources";
-    console.log(resDir);
-    const outputDir = `${appDir}/output`;
-    const floor = `${resDir}/floor-texture/${floorTexture}.jpg`;
-    const wall = `${resDir}/wall-texture/${wallTexture}.jpg`;
+    const mountDir = `${appDir}/output`;
+    const doesOutputDirExists = await exists(`${mountDir}/${blueprintName}`);
+    console.log(doesOutputDirExists);
     const args = [
+      "docker",
+      "run",
+      "--rm",
+      "-v",
+      `${mountDir}:/app/results`,
+      "2d-to-3d-convertor",
+      "main.py",
       blueprintName,
-      "--output",
-      outputDir,
       "--wall_texture",
-      wall,
+      wallTexture,
       "--floor_texture",
-      floor,
+      floorTexture,
       "--scale_factor",
       String(scale[0]),
       "--wall_height",
       String(wallHeight),
     ];
+    console.log(`${mountDir}:/app/results`);
     console.log(args);
-    const command = Command.sidecar("binaries/convertor", args);
-    const commandOutput = await command.execute();
-    console.log(commandOutput);
+    try {
+      const dockerStart = performance.now();
+      const command = Command.create("exec-sh", ["-c", args.join(" ")]);
+      const commandOutput = await command.execute();
+      const dockerEnd = performance.now();
+      console.log(
+        "time took for docker container execution",
+        dockerEnd - dockerStart,
+      );
+      console.log(commandOutput.stdout);
+      console.log(commandOutput.stderr);
+    } catch (error) {
+      console.error(error);
+    }
   };
 </script>
 
