@@ -24,8 +24,20 @@
             }
           ],
           "sidecar": false
+        },
+        {
+          "name": "exec-pwsh",
+          "cmd": "powershell.exe",
+          "args": [
+            "-Command",
+            {
+              "validator": ".+"
+            }
+          ],
+          "sidecar": false
         }
       ]
-    }
+    },
+    "os:default"
   ]
 }

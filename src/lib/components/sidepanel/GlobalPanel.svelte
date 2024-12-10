@@ -10,6 +10,7 @@
   import Download from "lucide-svelte/icons/download";
   import { globalState } from "$lib/state.svelte";
   import { appDataDir } from "@tauri-apps/api/path";
+  import { platform } from "@tauri-apps/plugin-os";
   import {
     copyFile,
     exists,
@@ -25,6 +26,8 @@
   import WindowImage from "$src/assets/img/window.png?enhanced";
   import StairsImage from "$src/assets/img/stairs.png?enhanced";
   let { gltf, doorGltf, windowGltf, stairGltf } = $props();
+  const currentPlatform = platform();
+  console.log(currentPlatform);
   let floorTexture = $state("concrete");
   let wallTexture = $state("cookies");
   let scale = $state([0.1]);
@@ -109,11 +112,9 @@
           const appDir = await appDataDir();
           await saveFloorGLB(`${appDir}/output/floors`, result as ArrayBuffer);
           const mountDir = `${appDir}/output`;
-          const commandOutput = await Command.create("exec-sh", [
-            "-c",
+          await runConvertor(
             `docker run --rm -v ${mountDir}:/app/results 2d-to-3d-convertor stack-floors.py`,
-          ]).execute();
-          console.log(commandOutput);
+          );
           downloadFile(result as ArrayBuffer);
         },
         // (result) => downloadFile(result as ArrayBuffer),
@@ -126,6 +127,22 @@
       );
     }
   };
+  const runConvertor = async (command: string) => {
+    let shellCommand: string;
+    let flag: string;
+
+    if (currentPlatform === "linux") {
+      shellCommand = "exec-sh";
+      flag = "-c";
+    } else {
+      shellCommand = "exec-pwsh";
+      flag = "-Command";
+    }
+    const dockerCommand = Command.create(shellCommand, [flag, command]);
+    const dockerCommandOutput = await dockerCommand.execute();
+    console.log(dockerCommandOutput.stdout, dockerCommandOutput.stderr);
+  };
+
   const saveFloorGLB = async (appFloorDir: string, result: ArrayBuffer) => {
     const fileName = `floor${globalState.floorCount}.glb`;
     const filePath = `${appFloorDir}/${fileName}`;
@@ -244,15 +261,12 @@
     console.log(args);
     try {
       const dockerStart = performance.now();
-      const command = Command.create("exec-sh", ["-c", args.join(" ")]);
-      const commandOutput = await command.execute();
+      await runConvertor(args.join(" "));
       const dockerEnd = performance.now();
       console.log(
         "time took for docker container execution",
         dockerEnd - dockerStart,
       );
-      console.log(commandOutput.stdout);
-      console.log(commandOutput.stderr);
     } catch (error) {
       console.error(error);
     }
