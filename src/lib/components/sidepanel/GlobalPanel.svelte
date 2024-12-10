@@ -9,7 +9,7 @@
   import Upload from "lucide-svelte/icons/upload";
   import Download from "lucide-svelte/icons/download";
   import { globalState } from "$lib/state.svelte";
-  import { appDataDir, resourceDir } from "@tauri-apps/api/path";
+  import { appDataDir } from "@tauri-apps/api/path";
   import {
     copyFile,
     exists,
