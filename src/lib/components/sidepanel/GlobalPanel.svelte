@@ -160,7 +160,7 @@
           await saveFloorGLB(`${appDir}/output/floors`, result as ArrayBuffer);
           const mountDir = `${appDir}/output`;
           await runConvertor(
-            `docker run --rm -v "${mountDir}:/app/results" 2d-to-3d-convertor stack-floors.py`,
+            `docker run --network host -v "${mountDir}:/app/results" 2d-to-3d-convertor stack-floors.py`,
           );
           downloadFile(result as ArrayBuffer);
         },
@@ -257,7 +257,7 @@
 
         globalState.isGLTFUploaded = false;
         await convertTo3D(file);
-        const fileUrl = convertFileSrc(`${appDir}/output/model.glb`);
+        const fileUrl = convertFileSrc(`${appDir}/output/unfilled.glb`);
         console.log(fileUrl);
         globalState.gltfFile = fileUrl;
         globalState.isGLTFUploaded = true;
@@ -292,7 +292,9 @@
     const args = [
       "docker",
       "run",
-      "--rm",
+      // "--rm",
+      "--network",
+      "host",
       "-v",
       `"${mountDir}:/app/results"`,
       "2d-to-3d-convertor",
@@ -381,6 +383,10 @@
       <Select.Item value="synthetic-wood" label="synthetic-wood"
         >synthetic wood</Select.Item
       >
+      <Select.Item value="rusty-metal" label="rusty-metal"
+        >rusty metal</Select.Item
+      >
+      <Select.Item value="glass" label="glass">glass</Select.Item>
     </Select.Content>
   </Select.Root>
 </div>
