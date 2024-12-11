@@ -39,7 +39,7 @@ Title: Door
       bind:ref
       dispose={false}
       is={$doorGltf.scene.clone()}
-      scale={0.1}
+      scale={6}
       onpointerenter={(e) => (helperAxesSize = 1)}
       onpointerleave={(e) => (helperAxesSize = 0)}
     />

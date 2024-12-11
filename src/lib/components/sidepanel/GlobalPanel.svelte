@@ -15,7 +15,6 @@
     copyFile,
     exists,
     mkdir,
-    readFile,
     remove,
     writeFile,
   } from "@tauri-apps/plugin-fs";
@@ -25,7 +24,19 @@
   import DoorImage from "$src/assets/img/door.png?enhanced";
   import WindowImage from "$src/assets/img/window.png?enhanced";
   import StairsImage from "$src/assets/img/stairs.png?enhanced";
-  let { gltf, doorGltf, windowGltf, stairGltf } = $props();
+  import HouseImage from "$src/assets/img/house.png?enhanced";
+  import HostileImage from "$src/assets/img/hostile.png?enhanced";
+  import DiningImage from "$src/assets/img/dining.png?enhanced";
+
+  let {
+    gltf,
+    doorGltf,
+    windowGltf,
+    stairGltf,
+    enemyGltf,
+    houseGltf,
+    diningGltf,
+  } = $props();
   const currentPlatform = platform();
   console.log(currentPlatform);
   let floorTexture = $state("concrete");
@@ -100,6 +111,42 @@
         nodes.push(stairClone);
       }
     }
+    if ($enemyGltf) {
+      for (const coord of Object.values(globalState.enemy)) {
+        const enemyClone = $enemyGltf.scene.clone();
+        enemyClone.scale.x = 0.15;
+        enemyClone.scale.y = 0.15;
+        enemyClone.scale.z = 0.15;
+        enemyClone.position.x = coord.x;
+        enemyClone.position.y = coord.y;
+        enemyClone.position.z = coord.z;
+        nodes.push(enemyClone);
+      }
+    }
+    if ($houseGltf) {
+      for (const coord of Object.values(globalState.houses)) {
+        const houseClone = $houseGltf.scene.clone();
+        houseClone.scale.x = 0.15;
+        houseClone.scale.y = 0.15;
+        houseClone.scale.z = 0.15;
+        houseClone.position.x = coord.x;
+        houseClone.position.y = coord.y;
+        houseClone.position.z = coord.z;
+        nodes.push(houseClone);
+      }
+    }
+    if ($diningGltf) {
+      for (const coord of Object.values(globalState.dining)) {
+        const diningClone = $diningGltf.scene.clone();
+        diningClone.scale.x = 0.2;
+        diningClone.scale.y = 0.2;
+        diningClone.scale.z = 0.2;
+        diningClone.position.x = coord.x;
+        diningClone.position.y = coord.y;
+        diningClone.position.z = coord.z;
+        nodes.push(diningClone);
+      }
+    }
 
     return nodes;
   };
@@ -113,7 +160,7 @@
           await saveFloorGLB(`${appDir}/output/floors`, result as ArrayBuffer);
           const mountDir = `${appDir}/output`;
           await runConvertor(
-            `docker run --rm -v ${mountDir}:/app/results 2d-to-3d-convertor stack-floors.py`,
+            `docker run --rm -v "${mountDir}:/app/results" 2d-to-3d-convertor stack-floors.py`,
           );
           downloadFile(result as ArrayBuffer);
         },
@@ -217,7 +264,10 @@
         globalState.isRendering = false;
         globalState.doors = {};
         globalState.windows = {};
+        globalState.houses = {};
         globalState.stairs = {};
+        globalState.enemy = {};
+        globalState.dining = {};
         globalState.floorCount += 1;
         files = undefined;
         fileUpload.value = "";
@@ -244,7 +294,7 @@
       "run",
       "--rm",
       "-v",
-      `${mountDir}:/app/results`,
+      `"${mountDir}:/app/results"`,
       "2d-to-3d-convertor",
       "main.py",
       blueprintName,
@@ -352,7 +402,7 @@
   />
 </div>
 {#if globalState.isGLTFUploaded}
-  <div class="flex w-full justify-between box-border">
+  <div class="flex w-full justify-between box-border flex-wrap">
     <div
       class="border border-black flex flex-col items-center p-3 rounded-3xl"
       role="button"
@@ -364,7 +414,7 @@
       }}
       tabindex={0}
     >
-      <enhanced:img class="w-36 h-36 rounded-2xl" src={DoorImage} alt="" />
+      <enhanced:img class="w-28 h-28 rounded-2xl" src={DoorImage} alt="" />
       <p class="text-lg font-semibold">Door</p>
     </div>
     <div
@@ -378,7 +428,7 @@
       }}
       tabindex={0}
     >
-      <enhanced:img class="w-36 h-36 rounded-2xl" src={WindowImage} alt="" />
+      <enhanced:img class="w-28 h-28 rounded-2xl" src={WindowImage} alt="" />
       <p class="text-lg font-semibold">Window</p>
     </div>
     <div
@@ -392,8 +442,50 @@
       }}
       tabindex={0}
     >
-      <enhanced:img class="w-36 h-36 rounded-2xl" src={StairsImage} alt="" />
+      <enhanced:img class="w-28 h-28 rounded-2xl" src={StairsImage} alt="" />
       <p class="text-lg font-semibold">Stairs</p>
+    </div>
+    <div
+      class="border border-black flex flex-col items-center p-3 rounded-3xl"
+      role="button"
+      onclick={() => {
+        globalState.currentAsset = "enemy";
+      }}
+      onkeyup={() => {
+        globalState.currentAsset = "enemy";
+      }}
+      tabindex={0}
+    >
+      <enhanced:img class="w-28 h-28 rounded-2xl" src={HostileImage} alt="" />
+      <p class="text-lg font-semibold">Hostile</p>
+    </div>
+    <div
+      class="border border-black flex flex-col items-center p-3 rounded-3xl"
+      role="button"
+      onclick={() => {
+        globalState.currentAsset = "houses";
+      }}
+      onkeyup={() => {
+        globalState.currentAsset = "houses";
+      }}
+      tabindex={0}
+    >
+      <enhanced:img class="w-28 h-28 rounded-2xl" src={HouseImage} alt="" />
+      <p class="text-lg font-semibold">House</p>
+    </div>
+    <div
+      class="border border-black flex flex-col items-center p-3 rounded-3xl"
+      role="button"
+      onclick={() => {
+        globalState.currentAsset = "dining";
+      }}
+      onkeyup={() => {
+        globalState.currentAsset = "dining";
+      }}
+      tabindex={0}
+    >
+      <enhanced:img class="w-28 h-28 rounded-2xl" src={DiningImage} alt="" />
+      <p class="text-lg font-semibold">Table</p>
     </div>
   </div>
 {/if}

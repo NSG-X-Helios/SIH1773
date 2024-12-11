@@ -4,13 +4,13 @@
   import { globalState } from "$lib/state.svelte";
   let {
     gltf,
-
     invalidate,
-
+    enemyGltf,
     removeOutline,
     doorGltf,
     windowGltf,
     stairGltf,
+    houseGltf,
   } = $props();
 </script>
 
@@ -23,6 +23,13 @@
   {#if globalState.currentMesh}
     <MeshPanel {gltf} {invalidate} {removeOutline} />
   {:else}
-    <GlobalPanel {gltf} {doorGltf} {windowGltf} {stairGltf} />
+    <GlobalPanel
+      {gltf}
+      {doorGltf}
+      {windowGltf}
+      {stairGltf}
+      {enemyGltf}
+      {houseGltf}
+    />
   {/if}
 </div>

@@ -5,8 +5,21 @@
   import Window from "$lib/components/models/Window.svelte";
   import Stairs from "$lib/components/models/Stairs.svelte";
   import { globalState } from "$lib/state.svelte";
-  const { gltf, removeOutline, invalidate, doorGltf, windowGltf, stairGltf } =
-    $props();
+  import Enemy from "$lib/components/models/Enemy.svelte";
+  import House from "$lib/components/models/House.svelte";
+  import Dining from "$lib/components/models/Dining.svelte";
+
+  const {
+    gltf,
+    removeOutline,
+    invalidate,
+    doorGltf,
+    windowGltf,
+    stairGltf,
+    enemyGltf,
+    houseGltf,
+    diningGltf,
+  } = $props();
   const lineMaterial = new LineBasicMaterial({
     color: 0xffff00,
     linewidth: 5,
@@ -43,6 +56,22 @@
     <Window {id} {windowGltf} />
   {/each}
 {/if}
+{#if $enemyGltf}
+  {#each Object.keys(globalState.enemy) as id (id)}
+    <Enemy {id} {enemyGltf} />
+  {/each}
+{/if}
+{#if $houseGltf}
+  {#each Object.keys(globalState.houses) as id (id)}
+    <House {id} {houseGltf} />
+  {/each}
+{/if}
+{#if $diningGltf}
+  {#each Object.keys(globalState.dining) as id (id)}
+    <Dining {id} {diningGltf} />
+  {/each}
+{/if}
+
 {#if $gltf}
   <T.Group>
     {#each Object.entries($gltf.nodes) as [key, node]}

@@ -9,7 +9,7 @@
   import { tweened } from "svelte/motion";
   import { useProgress } from "@threlte/extras";
   import { fade } from "svelte/transition";
-
+  import { PerfMonitor } from "@threlte/extras";
   let gltf: ThrelteGltf | undefined = undefined;
   let invalidate: (() => void) | undefined = undefined;
   let removeOutline: (() => void) | undefined = undefined;
@@ -18,6 +18,9 @@
   let doorGltf;
   let windowGltf;
   let stairGltf;
+  let enemyGltf;
+  let houseGltf;
+  let diningGltf;
   const goFullScreen = (event: KeyboardEvent) => {
     if (globalState.isGLTFUploaded && event.ctrlKey && event.key === "q") {
       event.preventDefault();
@@ -66,6 +69,9 @@
       {doorGltf}
       {windowGltf}
       {stairGltf}
+      {enemyGltf}
+      {houseGltf}
+      {diningGltf}
     />
   </div>
   <div
@@ -99,6 +105,7 @@
     {/if}
     {#if globalState.isGLTFUploaded}
       <Canvas>
+        <!-- <PerfMonitor anchorX={"right"} /> -->
         <Scene
           bind:gltf
           bind:invalidate
@@ -108,6 +115,9 @@
           bind:doorGltf
           bind:windowGltf
           bind:stairGltf
+          bind:enemyGltf
+          bind:houseGltf
+          bind:diningGltf
         />
         <Gizmo verticalPlacement={"top"} horizontalPlacement={"left"} />
       </Canvas>

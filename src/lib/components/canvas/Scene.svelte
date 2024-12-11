@@ -29,6 +29,9 @@
     doorGltf = $bindable(),
     windowGltf = $bindable(),
     stairGltf = $bindable(),
+    enemyGltf = $bindable(),
+    houseGltf = $bindable(),
+    diningGltf = $bindable(),
   } = $props();
   gltf = useGltf(globalState.gltfFile, { dracoLoader });
   invalidate = invalidateFunction;
@@ -37,7 +40,9 @@
   doorGltf = useGltf("/models/door.glb", { dracoLoader });
   windowGltf = useGltf("/models/window.glb", { dracoLoader });
   stairGltf = useGltf("/models/stairs.glb", { dracoLoader });
-
+  enemyGltf = useGltf("/models/enemy.glb", { dracoLoader });
+  houseGltf = useGltf("/models/house.glb", { dracoLoader });
+  diningGltf = useGltf("/models/dining.glb", { dracoLoader });
   removeOutline = (wall: string) => {
     if ($gltf) {
       const edgeLines = $gltf.nodes[wall]?.children.find(
@@ -148,7 +153,7 @@
   <OrbitControls />
 </T.PerspectiveCamera>
 
-<T.AmbientLight intensity={0.1} />
+<T.AmbientLight intensity={0.2} />
 <T.DirectionalLight position={[0, 20, 10]} castShadow bind:ref={light} />
 
 <T.DirectionalLightHelper args={[light, 1, 0x000000]} />
@@ -160,6 +165,9 @@
   {doorGltf}
   {windowGltf}
   {stairGltf}
+  {enemyGltf}
+  {houseGltf}
+  {diningGltf}
 />
 
 <XR>

@@ -8,5 +8,8 @@ export const globalState = $state({
   doors: {},
   stairs: {},
   windows: {},
+  enemy: {},
+  houses: {},
+  dining: {},
   floorCount: 0,
 });
