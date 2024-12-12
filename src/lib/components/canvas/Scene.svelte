@@ -160,6 +160,7 @@
 
 <Building
   {gltf}
+  {scene}
   {removeOutline}
   {invalidate}
   {doorGltf}

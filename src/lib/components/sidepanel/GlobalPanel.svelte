@@ -39,10 +39,11 @@
   } = $props();
   const currentPlatform = platform();
   console.log(currentPlatform);
-  let floorTexture = $state("concrete");
-  let wallTexture = $state("cookies");
+  let floorTexture = $state("laminate-floor");
+  let wallTexture = $state("synthetic-wood");
   let scale = $state([0.1]);
   let wallHeight = $state(10);
+  let wallThickness = $state(1);
   let files: FileList | undefined = $state();
   let fileUpload: HTMLInputElement;
   const triggerFileUpload = () => {
@@ -162,7 +163,7 @@
           await runConvertor(
             `docker run --network host -v "${mountDir}:/app/results" 2d-to-3d-convertor stack-floors.py`,
           );
-          downloadFile(result as ArrayBuffer);
+          await downloadFile(result as ArrayBuffer);
         },
         // (result) => downloadFile(result as ArrayBuffer),
         (error) => console.log(error),
@@ -308,6 +309,8 @@
       String(scale[0]),
       "--wall_height",
       String(wallHeight),
+      "--wall_thickness",
+      String(wallThickness),
     ];
     console.log(`${mountDir}:/app/results`);
     console.log(args);
@@ -400,13 +403,26 @@
   <Input
     type="number"
     id="wall-count"
-    placeholder="Enter the wall height"
+    placeholder="Enter wall height"
     min="10"
     max="50"
     onblur={validateWallHeight}
     bind:value={wallHeight}
   />
 </div>
+<div class="space-y-2">
+  <Label for="thickness" class="text-lg font-semibold">Thickness of walls</Label
+  >
+  <Input
+    type="number"
+    id="thickness"
+    placeholder="Enter wall thickness"
+    min="0.1"
+    max="5"
+    bind:value={wallThickness}
+  />
+</div>
+
 {#if globalState.isGLTFUploaded}
   <div class="flex w-full justify-between box-border flex-wrap">
     <div
@@ -451,20 +467,20 @@
       <enhanced:img class="w-28 h-28 rounded-2xl" src={StairsImage} alt="" />
       <p class="text-lg font-semibold">Stairs</p>
     </div>
-    <div
-      class="border border-black flex flex-col items-center p-3 rounded-3xl"
-      role="button"
-      onclick={() => {
-        globalState.currentAsset = "enemy";
-      }}
-      onkeyup={() => {
-        globalState.currentAsset = "enemy";
-      }}
-      tabindex={0}
-    >
-      <enhanced:img class="w-28 h-28 rounded-2xl" src={HostileImage} alt="" />
-      <p class="text-lg font-semibold">Hostile</p>
-    </div>
+    <!-- <div -->
+    <!--   class="border border-black flex flex-col items-center p-3 rounded-3xl" -->
+    <!--   role="button" -->
+    <!--   onclick={() => { -->
+    <!--     globalState.currentAsset = "enemy"; -->
+    <!--   }} -->
+    <!--   onkeyup={() => { -->
+    <!--     globalState.currentAsset = "enemy"; -->
+    <!--   }} -->
+    <!--   tabindex={0} -->
+    <!-- > -->
+    <!--   <enhanced:img class="w-28 h-28 rounded-2xl" src={HostileImage} alt="" /> -->
+    <!--   <p class="text-lg font-semibold">Hostile</p> -->
+    <!-- </div> -->
     <div
       class="border border-black flex flex-col items-center p-3 rounded-3xl"
       role="button"
