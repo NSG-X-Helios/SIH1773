@@ -4,6 +4,7 @@
   import { Input } from "$lib/components/ui/input";
   import { Button } from "$lib/components/ui/button";
   import { Slider } from "$lib/components/ui/slider";
+  import * as Accordion from "$lib/components/ui/accordion/index.js";
   import * as Select from "$lib/components/ui/select";
   import Box from "lucide-svelte/icons/box";
   import Upload from "lucide-svelte/icons/upload";
@@ -43,7 +44,7 @@
   let wallTexture = $state("synthetic-wood");
   let scale = $state([0.1]);
   let wallHeight = $state(10);
-  let wallThickness = $state(1);
+  let wallThickness = $state(0);
   let files: FileList | undefined = $state();
   let fileUpload: HTMLInputElement;
   const triggerFileUpload = () => {
@@ -231,6 +232,7 @@
           },
         );
       }
+      globalState.isGLTFUploaded = false;
       globalState.isRendering = true;
       if (!isLayering) {
         const doesFloorDirExists = await exists(`${appDir}/output/floors/`);
@@ -326,7 +328,7 @@
       "--wall_height",
       String(wallHeight),
       "--wall_thickness",
-      String(wallThickness),
+      String(wallThickness + 2),
     ];
     console.log(`${mountDir}:/app/results`);
     console.log(args);
@@ -433,99 +435,127 @@
     type="number"
     id="thickness"
     placeholder="Enter wall thickness"
-    min="0.1"
+    min="0"
     max="5"
     bind:value={wallThickness}
   />
 </div>
 
 {#if globalState.isGLTFUploaded}
-  <div class="flex w-full justify-between box-border flex-wrap">
-    <div
-      class="border border-black flex flex-col items-center p-3 rounded-3xl"
-      role="button"
-      onclick={() => {
-        globalState.currentAsset = "doors";
-      }}
-      onkeyup={() => {
-        globalState.currentAsset = "doors";
-      }}
-      tabindex={0}
-    >
-      <enhanced:img class="w-28 h-28 rounded-2xl" src={DoorImage} alt="" />
-      <p class="text-lg font-semibold">Door</p>
-    </div>
-    <div
-      class="border border-black flex flex-col items-center p-3 rounded-3xl"
-      role="button"
-      onclick={() => {
-        globalState.currentAsset = "windows";
-      }}
-      onkeyup={() => {
-        globalState.currentAsset = "windows";
-      }}
-      tabindex={0}
-    >
-      <enhanced:img class="w-28 h-28 rounded-2xl" src={WindowImage} alt="" />
-      <p class="text-lg font-semibold">Window</p>
-    </div>
-    <div
-      class="border border-black flex flex-col items-center p-3 rounded-3xl"
-      role="button"
-      onclick={() => {
-        globalState.currentAsset = "stairs";
-      }}
-      onkeyup={() => {
-        globalState.currentAsset = "stairs";
-      }}
-      tabindex={0}
-    >
-      <enhanced:img class="w-28 h-28 rounded-2xl" src={StairsImage} alt="" />
-      <p class="text-lg font-semibold">Stairs</p>
-    </div>
-    <!-- <div -->
-    <!--   class="border border-black flex flex-col items-center p-3 rounded-3xl" -->
-    <!--   role="button" -->
-    <!--   onclick={() => { -->
-    <!--     globalState.currentAsset = "enemy"; -->
-    <!--   }} -->
-    <!--   onkeyup={() => { -->
-    <!--     globalState.currentAsset = "enemy"; -->
-    <!--   }} -->
-    <!--   tabindex={0} -->
-    <!-- > -->
-    <!--   <enhanced:img class="w-28 h-28 rounded-2xl" src={HostileImage} alt="" /> -->
-    <!--   <p class="text-lg font-semibold">Hostile</p> -->
-    <!-- </div> -->
-    <div
-      class="border border-black flex flex-col items-center p-3 rounded-3xl"
-      role="button"
-      onclick={() => {
-        globalState.currentAsset = "houses";
-      }}
-      onkeyup={() => {
-        globalState.currentAsset = "houses";
-      }}
-      tabindex={0}
-    >
-      <enhanced:img class="w-28 h-28 rounded-2xl" src={HouseImage} alt="" />
-      <p class="text-lg font-semibold">House</p>
-    </div>
-    <div
-      class="border border-black flex flex-col items-center p-3 rounded-3xl"
-      role="button"
-      onclick={() => {
-        globalState.currentAsset = "dining";
-      }}
-      onkeyup={() => {
-        globalState.currentAsset = "dining";
-      }}
-      tabindex={0}
-    >
-      <enhanced:img class="w-28 h-28 rounded-2xl" src={DiningImage} alt="" />
-      <p class="text-lg font-semibold">Table</p>
-    </div>
-  </div>
+  <Accordion.Root type="single">
+    <Accordion.Item value="assets">
+      <Accordion.Trigger class="text-lg font-semibold">Assets</Accordion.Trigger
+      >
+      <Accordion.Content>
+        <div class="flex w-full justify-between box-border flex-wrap gap-y-5">
+          <div
+            class="border border-black flex flex-col items-center p-3 rounded-3xl"
+            role="button"
+            onclick={() => {
+              globalState.currentAsset = "doors";
+            }}
+            onkeyup={() => {
+              globalState.currentAsset = "doors";
+            }}
+            tabindex={0}
+          >
+            <enhanced:img
+              class="w-28 h-28 rounded-2xl"
+              src={DoorImage}
+              alt=""
+            />
+            <p class="text-lg font-semibold">Door</p>
+          </div>
+          <div
+            class="border border-black flex flex-col items-center p-3 rounded-3xl"
+            role="button"
+            onclick={() => {
+              globalState.currentAsset = "windows";
+            }}
+            onkeyup={() => {
+              globalState.currentAsset = "windows";
+            }}
+            tabindex={0}
+          >
+            <enhanced:img
+              class="w-28 h-28 rounded-2xl"
+              src={WindowImage}
+              alt=""
+            />
+            <p class="text-lg font-semibold">Window</p>
+          </div>
+          <div
+            class="border border-black flex flex-col items-center p-3 rounded-3xl"
+            role="button"
+            onclick={() => {
+              globalState.currentAsset = "stairs";
+            }}
+            onkeyup={() => {
+              globalState.currentAsset = "stairs";
+            }}
+            tabindex={0}
+          >
+            <enhanced:img
+              class="w-28 h-28 rounded-2xl"
+              src={StairsImage}
+              alt=""
+            />
+            <p class="text-lg font-semibold">Stairs</p>
+          </div>
+          <!-- <div -->
+          <!--   class="border border-black flex flex-col items-center p-3 rounded-3xl" -->
+          <!--   role="button" -->
+          <!--   onclick={() => { -->
+          <!--     globalState.currentAsset = "enemy"; -->
+          <!--   }} -->
+          <!--   onkeyup={() => { -->
+          <!--     globalState.currentAsset = "enemy"; -->
+          <!--   }} -->
+          <!--   tabindex={0} -->
+          <!-- > -->
+          <!--   <enhanced:img class="w-28 h-28 rounded-2xl" src={HostileImage} alt="" /> -->
+          <!--   <p class="text-lg font-semibold">Hostile</p> -->
+          <!-- </div> -->
+          <div
+            class="border border-black flex flex-col items-center p-3 rounded-3xl"
+            role="button"
+            onclick={() => {
+              globalState.currentAsset = "houses";
+            }}
+            onkeyup={() => {
+              globalState.currentAsset = "houses";
+            }}
+            tabindex={0}
+          >
+            <enhanced:img
+              class="w-28 h-28 rounded-2xl"
+              src={HouseImage}
+              alt=""
+            />
+            <p class="text-lg font-semibold">House</p>
+          </div>
+          <div
+            class="border border-black flex flex-col items-center p-3 rounded-3xl"
+            role="button"
+            onclick={() => {
+              globalState.currentAsset = "dining";
+            }}
+            onkeyup={() => {
+              globalState.currentAsset = "dining";
+            }}
+            tabindex={0}
+          >
+            <enhanced:img
+              class="w-28 h-28 rounded-2xl"
+              src={DiningImage}
+              alt=""
+            />
+            <p class="text-lg font-semibold">Table</p>
+          </div>
+        </div>
+      </Accordion.Content>
+    </Accordion.Item>
+  </Accordion.Root>
 {/if}
 <Button
   onclick={onRender}

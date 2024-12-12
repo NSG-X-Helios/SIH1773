@@ -11,6 +11,7 @@
     windowGltf,
     stairGltf,
     houseGltf,
+    diningGltf,
   } = $props();
 </script>
 
@@ -18,7 +19,7 @@
   <h2
     class="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0"
   >
-    Blueprint to 3D Convertor
+    NS3
   </h2>
   {#if globalState.currentMesh}
     <MeshPanel {gltf} {invalidate} {removeOutline} />
@@ -30,6 +31,7 @@
       {stairGltf}
       {enemyGltf}
       {houseGltf}
+      {diningGltf}
     />
   {/if}
 </div>
