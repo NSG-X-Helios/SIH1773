@@ -210,10 +210,7 @@
       >
         <p class="loading">Loading...</p>
         <div class="bar-wrapper">
-          <div
-            class="bar"
-            style="width: {($tweenedProgress || 0) * 100}%;"
-          ></div>
+          <div class="bar" style="width: {2 * 100}%;"></div>
         </div>
       </div>
     {/if}

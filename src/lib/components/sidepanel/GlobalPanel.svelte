@@ -70,6 +70,9 @@
         // await writeFile(filePath, finalGLBBuffer);
       }
       console.log("export done!");
+      const fileUrl = convertFileSrc(`${appDir}/output/floors/final.glb`);
+      console.log(fileUrl);
+      globalState.gltfFile = fileUrl;
     } catch (error) {
       console.error("Error saving file in Tauri:", error);
     }
@@ -163,7 +166,20 @@
           await runConvertor(
             `docker run --network host -v "${mountDir}:/app/results" 2d-to-3d-convertor stack-floors.py`,
           );
+          globalState.isGLTFUploaded = false;
+          globalState.isRendering = true;
           await downloadFile(result as ArrayBuffer);
+          globalState.isGLTFUploaded = true;
+          globalState.doors = {};
+          globalState.windows = {};
+          globalState.houses = {};
+          globalState.stairs = {};
+          globalState.enemy = {};
+          globalState.dining = {};
+          globalState.floorCount = 1;
+          files = undefined;
+          fileUpload.value = "";
+          globalState.isRendering = false;
         },
         // (result) => downloadFile(result as ArrayBuffer),
         (error) => console.log(error),
