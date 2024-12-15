@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "xhelios",
+  "productName": "NS3",
   "version": "0.1.0",
-  "identifier": "com.xhelios.dev",
+  "identifier": "com.ns3.dev",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "xhelios",
+        "title": "NS3",
         "maximized": true,
         "resizable": true,
         "fullscreen": false
