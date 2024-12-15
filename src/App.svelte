@@ -6,8 +6,6 @@
   import type { ThrelteGltf } from "@threlte/extras";
   import { Gizmo } from "@threlte/extras";
   import { ARButton, VRButton } from "@threlte/xr";
-  import { tweened } from "svelte/motion";
-  import { useProgress } from "@threlte/extras";
   import { fade } from "svelte/transition";
   import * as THREE from "three";
   import { PerfMonitor } from "@threlte/extras";
@@ -29,11 +27,6 @@
     }
   };
 
-  const { progress } = useProgress();
-  const tweenedProgress = tweened($progress, {
-    duration: 150,
-  });
-  $: tweenedProgress.set($progress);
   import { Raycaster, Vector2 } from "three";
   const raycaster = new Raycaster();
   const mouse = new Vector2();
@@ -216,7 +209,7 @@
     {/if}
     {#if globalState.isGLTFUploaded}
       <Canvas>
-        <!-- <PerfMonitor anchorX={"right"} /> -->
+        <PerfMonitor anchorX={"right"} />
         <Scene
           bind:gltf
           bind:invalidate

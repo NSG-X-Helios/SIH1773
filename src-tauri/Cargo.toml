@@ -30,3 +30,6 @@ tauri-plugin-os = "2"
 
 [profile.dev]
 incremental = true # Compile your binary in smaller steps.
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-single-instance = "2"

@@ -516,24 +516,24 @@
           <!--   <enhanced:img class="w-28 h-28 rounded-2xl" src={HostileImage} alt="" /> -->
           <!--   <p class="text-lg font-semibold">Hostile</p> -->
           <!-- </div> -->
-          <div
-            class="border border-black flex flex-col items-center p-3 rounded-3xl"
-            role="button"
-            onclick={() => {
-              globalState.currentAsset = "houses";
-            }}
-            onkeyup={() => {
-              globalState.currentAsset = "houses";
-            }}
-            tabindex={0}
-          >
-            <enhanced:img
-              class="w-28 h-28 rounded-2xl"
-              src={HouseImage}
-              alt=""
-            />
-            <p class="text-lg font-semibold">House</p>
-          </div>
+          <!-- <div -->
+          <!--   class="border border-black flex flex-col items-center p-3 rounded-3xl" -->
+          <!--   role="button" -->
+          <!--   onclick={() => { -->
+          <!--     globalState.currentAsset = "houses"; -->
+          <!--   }} -->
+          <!--   onkeyup={() => { -->
+          <!--     globalState.currentAsset = "houses"; -->
+          <!--   }} -->
+          <!--   tabindex={0} -->
+          <!-- > -->
+          <!--   <enhanced:img -->
+          <!--     class="w-28 h-28 rounded-2xl" -->
+          <!--     src={HouseImage} -->
+          <!--     alt="" -->
+          <!--   /> -->
+          <!--   <p class="text-lg font-semibold">House</p> -->
+          <!-- </div> -->
           <div
             class="border border-black flex flex-col items-center p-3 rounded-3xl"
             role="button"
