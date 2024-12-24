@@ -1,0 +1,3 @@
+[submodule "2D-to-3D-converter"]
+	path = 2D-to-3D-converter
+	url = git@github.com:NSG-X-Helios/BLUEPRINT_TO_BLENDER.git
