@@ -10,7 +10,7 @@
   import Upload from "lucide-svelte/icons/upload";
   import Download from "lucide-svelte/icons/download";
   import { globalState } from "$lib/state.svelte";
-  import { appDataDir } from "@tauri-apps/api/path";
+  import { appDataDir, resourceDir } from "@tauri-apps/api/path";
   import { platform } from "@tauri-apps/plugin-os";
   import {
     copyFile,
@@ -203,9 +203,12 @@
       shellCommand = "exec-pwsh";
       flag = "-Command";
     }
-    const dockerCommand = Command.create(shellCommand, [flag, command]);
-    const dockerCommandOutput = await dockerCommand.execute();
-    console.log(dockerCommandOutput.stdout, dockerCommandOutput.stderr);
+    console.log("below command");
+    console.log(command);
+    const converterCommand = Command.create(shellCommand, [flag, command]);
+    const converterCommandOutput = await converterCommand.execute();
+    console.log(converterCommandOutput.stderr);
+    console.log(converterCommandOutput.stdout);
   };
 
   const saveFloorGLB = async (appFloorDir: string, result: ArrayBuffer) => {
@@ -305,24 +308,21 @@
   };
   const convertTo3D = async (blueprintName: string) => {
     const appDir = await appDataDir();
-    const mountDir = `${appDir}/output`;
-    const doesOutputDirExists = await exists(`${mountDir}/${blueprintName}`);
+    const outputDir = `${appDir}/output`;
+    const resDir = await resourceDir();
+    const blueprintPath = `${outputDir}/${blueprintName}`;
+    let converter = `${resDir}/converter/main${currentPlatform === "windows" ? ".exe" : ""}`;
+    const doesOutputDirExists = await exists(`${outputDir}/${blueprintName}`);
     console.log(doesOutputDirExists);
     const args = [
-      "docker",
-      "run",
-      // "--rm",
-      "--network",
-      "host",
-      "-v",
-      `"${mountDir}:/app/results"`,
-      "2d-to-3d-convertor",
-      "main.py",
-      blueprintName,
+      `"${converter}"`,
+      `"${blueprintPath}"`,
+      "--output",
+      `"${outputDir}"`,
       "--wall_texture",
-      wallTexture,
+      `${wallTexture}.jpg`,
       "--floor_texture",
-      floorTexture,
+      `${floorTexture}.jpg`,
       "--scale_factor",
       String(scale[0]),
       "--wall_height",
@@ -330,15 +330,14 @@
       "--wall_thickness",
       String(wallThickness + 2),
     ];
-    console.log(`${mountDir}:/app/results`);
     console.log(args);
     try {
-      const dockerStart = performance.now();
-      await runConvertor(args.join(" "));
-      const dockerEnd = performance.now();
+      const converterStart = performance.now();
+      await runConvertor(`${args.join(" ")}`);
+      const converterEnd = performance.now();
       console.log(
-        "time took for docker container execution",
-        dockerEnd - dockerStart,
+        "time took for converter execution",
+        converterEnd - converterStart,
       );
     } catch (error) {
       console.error(error);
