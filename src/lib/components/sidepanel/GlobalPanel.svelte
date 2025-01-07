@@ -279,7 +279,7 @@
 
         globalState.isGLTFUploaded = false;
         await convertTo3D(file);
-        const fileUrl = convertFileSrc(`${appDir}/output/unfilled.glb`);
+        const fileUrl = convertFileSrc(`${appDir}/output/furnished.glb`);
         console.log(fileUrl);
         globalState.gltfFile = fileUrl;
         globalState.isGLTFUploaded = true;
