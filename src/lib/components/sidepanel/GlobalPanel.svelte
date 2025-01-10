@@ -10,7 +10,7 @@
   import Upload from "lucide-svelte/icons/upload";
   import Download from "lucide-svelte/icons/download";
   import { globalState } from "$lib/state.svelte";
-  import { appDataDir } from "@tauri-apps/api/path";
+  import { appDataDir, resourceDir } from "@tauri-apps/api/path";
   import { platform } from "@tauri-apps/plugin-os";
   import {
     copyFile,
@@ -163,10 +163,13 @@
         async (result) => {
           const appDir = await appDataDir();
           await saveFloorGLB(`${appDir}/output/floors`, result as ArrayBuffer);
-          const mountDir = `${appDir}/output`;
-          await runConvertor(
-            `docker run --network host -v "${mountDir}:/app/results" 2d-to-3d-convertor stack-floors.py`,
-          );
+          const args = [
+            "--stack",
+            "--output_directory",
+            `${appDir}/output/floors`,
+          ];
+
+          await runConvertor(args);
           globalState.isGLTFUploaded = false;
           globalState.isRendering = true;
           await downloadFile(result as ArrayBuffer);
@@ -192,20 +195,11 @@
       );
     }
   };
-  const runConvertor = async (command: string) => {
-    let shellCommand: string;
-    let flag: string;
-
-    if (currentPlatform === "linux") {
-      shellCommand = "exec-sh";
-      flag = "-c";
-    } else {
-      shellCommand = "exec-pwsh";
-      flag = "-Command";
-    }
-    const dockerCommand = Command.create(shellCommand, [flag, command]);
-    const dockerCommandOutput = await dockerCommand.execute();
-    console.log(dockerCommandOutput.stdout, dockerCommandOutput.stderr);
+  const runConvertor = async (flags: string[]) => {
+    const converterCommand = Command.sidecar("binaries/converter", flags);
+    const converterCommandOutput = await converterCommand.execute();
+    console.log(converterCommandOutput.stderr);
+    console.log(converterCommandOutput.stdout);
   };
 
   const saveFloorGLB = async (appFloorDir: string, result: ArrayBuffer) => {
@@ -276,7 +270,7 @@
 
         globalState.isGLTFUploaded = false;
         await convertTo3D(file);
-        const fileUrl = convertFileSrc(`${appDir}/output/unfilled.glb`);
+        const fileUrl = convertFileSrc(`${appDir}/output/furnished.glb`);
         console.log(fileUrl);
         globalState.gltfFile = fileUrl;
         globalState.isGLTFUploaded = true;
@@ -305,40 +299,34 @@
   };
   const convertTo3D = async (blueprintName: string) => {
     const appDir = await appDataDir();
-    const mountDir = `${appDir}/output`;
-    const doesOutputDirExists = await exists(`${mountDir}/${blueprintName}`);
+    const outputDir = `${appDir}/output`;
+    const blueprintPath = `${outputDir}/${blueprintName}`;
+    const doesOutputDirExists = await exists(`${outputDir}/${blueprintName}`);
     console.log(doesOutputDirExists);
     const args = [
-      "docker",
-      "run",
-      // "--rm",
-      "--network",
-      "host",
-      "-v",
-      `"${mountDir}:/app/results"`,
-      "2d-to-3d-convertor",
-      "main.py",
-      blueprintName,
+      `${blueprintPath}`,
+      "--convert",
+      "--output_directory",
+      `${outputDir}`,
       "--wall_texture",
-      wallTexture,
+      `${wallTexture}.jpg`,
       "--floor_texture",
-      floorTexture,
+      `${floorTexture}.jpg`,
       "--scale_factor",
       String(scale[0]),
       "--wall_height",
       String(wallHeight),
       "--wall_thickness",
-      String(wallThickness + 2),
+      String(wallThickness),
     ];
-    console.log(`${mountDir}:/app/results`);
-    console.log(args);
+    console.log(args.join(" "));
     try {
-      const dockerStart = performance.now();
-      await runConvertor(args.join(" "));
-      const dockerEnd = performance.now();
+      const converterStart = performance.now();
+      await runConvertor(args);
+      const converterEnd = performance.now();
       console.log(
-        "time took for docker container execution",
-        dockerEnd - dockerStart,
+        "time took for converter execution",
+        converterEnd - converterStart,
       );
     } catch (error) {
       console.error(error);

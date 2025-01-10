@@ -10,7 +10,7 @@
     "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json",
     "format": "prettier --write .",
     "prepare": "husky",
-    "convertor-pipeline:run": "node scripts/convertor-pipeline.js",
+    "converter-pipeline:run": "node scripts/converter-pipeline.js",
     "compress-model": "node scripts/compress-model.js"
   },
   "devDependencies": {

@@ -12,14 +12,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - platform: "macos-latest" # for Arm based macs (M1 and above).
-          #   args: "--target aarch64-apple-darwin"
-          # - platform: "macos-latest" # for Intel based macs.
-          #   args: "--target x86_64-apple-darwin"
+          - platform: "macos-latest" # for Arm based macs (M1 and above).
+            args: "--target aarch64-apple-darwin"
           - platform: "ubuntu-22.04" # for Tauri v1 you could replace this with ubuntu-20.04.
             args: ""
-          - platform: "windows-latest"
-            args: ""
+          # - platform: "windows-latest"
+          #   args: ""
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -46,13 +44,33 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev poppler-utils imagemagick libappindicator3-dev librsvg2-dev patchelf
         # webkitgtk 4.0 is for Tauri v1 - webkitgtk 4.1 is for Tauri v2.
 
+      - name: install dependencies (windows)
+        if: matrix.platform == 'windows-latest'
+        run: choco install imagemagick poppler
+
+      - name: install dependencies (macos)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          brew update
+          brew install imagemagick poppler
+
       - name: install frontend dependencies
         run: pnpm install # change this to npm, pnpm or bun depending on which one you use.
+
+      - name: Set up conda environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: 2D-to-3D-converter/linux-environment.yml
+          activate-environment: twoD2threeD
+          auto-activate-base: false
+
+      - name: Build 2D-to-3D-converter
+        run: pnpm converter-pipeline:run
 
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NO_STRIP: true
+          # NO_STRIP: true
         with:
           tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: "App v__VERSION__"
