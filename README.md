@@ -35,7 +35,7 @@ conda activate twoD2threeD
 pnpm run converter-pipeline:run
 ```
 
-### Start the Dev App
+### Start the dev App
 
 ```bash
 pnpm tauri dev
@@ -43,7 +43,7 @@ pnpm tauri dev
 
 Press `Ctrl` + `Shift` + `I` for launching inspector tools in dev app
 
-### For build
+## Build
 
 You can use the flags:
 
