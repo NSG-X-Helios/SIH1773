@@ -11,30 +11,14 @@
     "fs:allow-appdata-write-recursive",
     "dialog:default",
     "shell:default",
+    "shell:allow-open",
     {
       "identifier": "shell:allow-execute",
       "allow": [
         {
-          "name": "exec-sh",
-          "cmd": "sh",
-          "args": [
-            "-c",
-            {
-              "validator": ".+"
-            }
-          ],
-          "sidecar": false
-        },
-        {
-          "name": "exec-pwsh",
-          "cmd": "powershell.exe",
-          "args": [
-            "-Command",
-            {
-              "validator": ".+"
-            }
-          ],
-          "sidecar": false
+          "args": true,
+          "name": "binaries/converter",
+          "sidecar": true
         }
       ]
     },
