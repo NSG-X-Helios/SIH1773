@@ -12,8 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest" # for Arm based macs (M1 and above).
-            args: "--target aarch64-apple-darwin"
+          # - platform: "macos-latest" # for Arm based macs (M1 and above).
+          #   args: "--target aarch64-apple-darwin"
           - platform: "ubuntu-22.04" # for Tauri v1 you could replace this with ubuntu-20.04.
             args: ""
           # - platform: "windows-latest"
@@ -64,8 +64,9 @@ jobs:
       - name: Set up conda environment
         uses: conda-incubator/setup-miniconda@v3
         with:
-          environment-file: 2D-to-3D-converter/linux-environment.yml
           activate-environment: twoD2threeD
+          environment-file: 2D-to-3D-converter/linux-environment.yml
+          python-version: 3.11.10          
           auto-activate-base: false
 
       - name: Build 2D-to-3D-converter
