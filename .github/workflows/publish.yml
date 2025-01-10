@@ -71,6 +71,7 @@ jobs:
 
       - name: Build 2D-to-3D-converter
         run: |
+          conda activate twoD2threeD
           python --version
           conda info
           pnpm converter-pipeline:run
