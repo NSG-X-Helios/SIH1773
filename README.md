@@ -60,9 +60,7 @@ For building appimage, you might want to do
 export NO_STRIP=true
 ```
 
-## Contribution
-
-Please use [conventional-commits](https://www.conventionalcommits.org/en/v1.0.0/) format when writing commit messages
+---
 
 ![good luck...](https://github.com/me-shaon/GLWTPL/raw/master/good-luck.gif)
 
