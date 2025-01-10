@@ -65,7 +65,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: 2D-to-3D-converter/linux-environment.yml
-          python-version: 3.11.10          
+          python-version: 3.11.10
           auto-activate-base: false
           activate-environment: twoD2threeD
 
@@ -74,7 +74,6 @@ jobs:
           conda init
           source ~/.bashrc
           conda activate twoD2threeD
-          conda info
           pnpm converter-pipeline:run
 
       - uses: tauri-apps/tauri-action@v0
