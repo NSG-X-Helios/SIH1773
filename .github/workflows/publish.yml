@@ -64,13 +64,16 @@ jobs:
       - name: Set up conda environment
         uses: conda-incubator/setup-miniconda@v3
         with:
-          activate-environment: twoD2threeD
           environment-file: 2D-to-3D-converter/linux-environment.yml
           python-version: 3.11.10          
           auto-activate-base: false
+          activate-environment: twoD2threeD
 
       - name: Build 2D-to-3D-converter
-        run: pnpm converter-pipeline:run
+        run: |
+          python --version
+          conda info
+          pnpm converter-pipeline:run
 
       - uses: tauri-apps/tauri-action@v0
         env:
