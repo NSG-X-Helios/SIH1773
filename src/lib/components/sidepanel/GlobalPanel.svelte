@@ -195,11 +195,18 @@
       );
     }
   };
+
   const runConvertor = async (flags: string[]) => {
-    const converterCommand = Command.sidecar("binaries/converter", flags);
-    const converterCommandOutput = await converterCommand.execute();
-    console.log(converterCommandOutput.stderr);
-    console.log(converterCommandOutput.stdout);
+    const cmdStr =
+      ` python3 ../Le_Edificio/main.py ` +
+      flags.map((f) => `'${f.replace(/'/g, `'\\''`)}'`).join(" ");
+    const cmd = Command.create("exec-sh", ["-c", cmdStr], {
+      env: { PYTHONUNBUFFERED: "1" },
+      encoding: "utf-8",
+    });
+    const { stdout, stderr } = await cmd.execute();
+    console.log(stderr);
+    console.log(stdout);
   };
 
   const saveFloorGLB = async (appFloorDir: string, result: ArrayBuffer) => {
@@ -299,13 +306,14 @@
   };
   const convertTo3D = async (blueprintName: string) => {
     const appDir = await appDataDir();
+    console.log(wallTexture, floorTexture);
     const outputDir = `${appDir}/output`;
     const blueprintPath = `${outputDir}/${blueprintName}`;
     const doesOutputDirExists = await exists(`${outputDir}/${blueprintName}`);
     console.log(doesOutputDirExists);
     const args = [
-      `${blueprintPath}`,
       "--convert",
+      `${blueprintPath}`,
       "--output_directory",
       `${outputDir}`,
       "--wall_texture",
