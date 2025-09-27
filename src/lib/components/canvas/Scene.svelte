@@ -37,9 +37,9 @@
   invalidate = invalidateFunction;
   camera = cameraCtx;
   scene = sceneCtx;
-  doorGltf = useGltf("/models/door.glb", { dracoLoader });
-  windowGltf = useGltf("/models/window.glb", { dracoLoader });
-  stairGltf = useGltf("/models/stairs.glb", { dracoLoader });
+  doorGltf = useGltf("/models/water-tank1.glb", { dracoLoader });
+  windowGltf = useGltf("/models/water-tank2.glb", { dracoLoader });
+  stairGltf = useGltf("/models/plastic-water-tank.glb", { dracoLoader });
   enemyGltf = useGltf("/models/enemy.glb", { dracoLoader });
   houseGltf = useGltf("/models/house.glb", { dracoLoader });
   diningGltf = useGltf("/models/dining.glb", { dracoLoader });
@@ -146,8 +146,8 @@
 <T.PerspectiveCamera
   bind:ref={perspectiveCameraRef}
   makeDefault
-  position={[20, 12, 10]}
-  oncreate={(ref) => ref.lookAt(1, 1, 0)}
+  position={[2000, 500, 100]}
+  oncreate={(ref) => ref.lookAt(0, 0, 0)}
 >
   <!-- Removed OrbitControls for manual control -->
   <OrbitControls />

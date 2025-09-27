@@ -19,7 +19,7 @@
   <h2
     class="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0"
   >
-    NS3
+    X-Notus
   </h2>
   {#if globalState.currentMesh}
     <MeshPanel {gltf} {invalidate} {removeOutline} />
