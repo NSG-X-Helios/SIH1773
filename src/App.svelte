@@ -3,6 +3,7 @@
   import Scene from "$lib/components/canvas/Scene.svelte";
   import SidePanel from "$lib/components/sidepanel/SidePanel.svelte";
   import LoadingOverlay from "$lib/components/LoadingOverlay.svelte";
+  import ComparisonView from "$lib/components/ComparisonView.svelte";
   import { globalState } from "$lib/state.svelte";
   import type { ThrelteGltf } from "@threlte/extras";
   import { Gizmo } from "@threlte/extras";
@@ -220,6 +221,9 @@
     {/if}
   </div>
 </main>
+
+<!-- Comparison overlay -->
+<ComparisonView />
 
 <style>
   /* No additional styles needed - LoadingOverlay has its own styling */

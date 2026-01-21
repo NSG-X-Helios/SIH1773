@@ -1,6 +1,8 @@
 export const globalState = $state({
   isGLTFUploaded: false,
   gltfFile: "",
+  blueprintPreview: "" as string,
+  showComparison: false,
   currentMesh: "" as string | null,
   isFullScreen: false,
   isRendering: false,

@@ -9,6 +9,7 @@
   import Box from "lucide-svelte/icons/box";
   import Upload from "lucide-svelte/icons/upload";
   import Download from "lucide-svelte/icons/download";
+  import SplitSquareHorizontal from "lucide-svelte/icons/columns-2";
   import { globalState } from "$lib/state.svelte";
   import { appDataDir, resourceDir } from "@tauri-apps/api/path";
   import { platform } from "@tauri-apps/plugin-os";
@@ -274,6 +275,9 @@
         }
         const file = `blueprint2D.${fileExtension}`;
         await writeFile(standardizedFileName, new Uint8Array(fileContent));
+
+        // Store blueprint preview for comparison view
+        globalState.blueprintPreview = convertFileSrc(standardizedFileName);
 
         globalState.isGLTFUploaded = false;
         await convertTo3D(file);
@@ -572,3 +576,12 @@
 >
   <Download size={300} /> Export to 3D
 </Button>
+{#if globalState.isGLTFUploaded && globalState.blueprintPreview}
+  <Button
+    class="text-lg w-full font-medium"
+    onclick={() => (globalState.showComparison = true)}
+    variant="secondary"
+  >
+    <SplitSquareHorizontal size={300} /> Compare Blueprint
+  </Button>
+{/if}
