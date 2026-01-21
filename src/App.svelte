@@ -2,6 +2,7 @@
   import { Canvas } from "@threlte/core";
   import Scene from "$lib/components/canvas/Scene.svelte";
   import SidePanel from "$lib/components/sidepanel/SidePanel.svelte";
+  import LoadingOverlay from "$lib/components/LoadingOverlay.svelte";
   import { globalState } from "$lib/state.svelte";
   import type { ThrelteGltf } from "@threlte/extras";
   import { Gizmo } from "@threlte/extras";
@@ -195,17 +196,7 @@
     tabindex="0"
   >
     {#if globalState.isRendering}
-      <div
-        transition:fade|local={{
-          duration: 200,
-        }}
-        class="wrapper"
-      >
-        <p class="loading">Loading...</p>
-        <div class="bar-wrapper">
-          <div class="bar" style="width: {2 * 100}%;"></div>
-        </div>
-      </div>
+      <LoadingOverlay />
     {/if}
     {#if globalState.isGLTFUploaded}
       <Canvas>
@@ -231,67 +222,5 @@
 </main>
 
 <style>
-  .wrapper {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: center;
-    justify-content: center;
-    color: black;
-  }
-  .loading {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #333;
-    animation: pulse 1.5s infinite;
-  }
-  .bar-wrapper {
-    width: 50%;
-    height: 12px;
-    border: 1px solid #333;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: #f5f5f5;
-    position: relative;
-  }
-
-  .bar {
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      rgba(2, 0, 36, 0) 0%,
-      #000000 50%,
-      rgba(2, 0, 36, 0) 100%
-    );
-    background-size: 200% 100%;
-    animation: loading 2s infinite linear;
-    transition: width 0.15s ease-in-out;
-  }
-
-  @keyframes loading {
-    0% {
-      background-position: 200% 0;
-    }
-    100% {
-      background-position: -200% 0;
-    }
-  }
-
-  @keyframes pulse {
-    0% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
+  /* No additional styles needed - LoadingOverlay has its own styling */
 </style>
