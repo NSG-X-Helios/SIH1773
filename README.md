@@ -60,6 +60,10 @@ For building appimage, you might want to do
 export NO_STRIP=true
 ```
 
+### Using Pre-compiled Converter Binaries
+
+If you are using pre-compiled binaries downloaded from GitHub Releases or Artifacts, place the binary in the `src-tauri/binaries/` directory. Ensure the file is named with the appropriate target triple for your platform (e.g., `converter-x86_64-unknown-linux-gnu` or `converter-aarch64-apple-darwin`).
+
 ---
 
 ![good luck...](https://github.com/me-shaon/GLWTPL/raw/master/good-luck.gif)
