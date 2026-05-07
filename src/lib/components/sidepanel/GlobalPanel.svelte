@@ -30,6 +30,20 @@
   import HostileImage from "$src/assets/img/hostile.png?enhanced";
   import DiningImage from "$src/assets/img/dining.png?enhanced";
 
+  // Wraps GLTFExporter.parse in a Promise so it can be properly awaited.
+  // This is critical to avoid race conditions when saving floor GLBs.
+  const exportSceneToArrayBuffer = (nodes: any[]): Promise<ArrayBuffer> => {
+    return new Promise((resolve, reject) => {
+      const exporter = new GLTFExporter();
+      exporter.parse(
+        nodes,
+        (result) => resolve(result as ArrayBuffer),
+        (error) => reject(error),
+        { binary: true, includeCustomExtensions: true, onlyVisible: false },
+      );
+    });
+  };
+
   let {
     gltf,
     doorGltf,
@@ -156,44 +170,31 @@
 
     return nodes;
   };
-  const downloadGLB = () => {
+  const downloadGLB = async () => {
     if ($gltf) {
-      const exporter = new GLTFExporter();
-      exporter.parse(
-        collectScene(),
-        async (result) => {
-          const appDir = await appDataDir();
-          await saveFloorGLB(`${appDir}/output/floors`, result as ArrayBuffer);
-          const args = [
-            "--stack",
-            "--output_directory",
-            `${appDir}/output/floors`,
-          ];
+      const appDir = await appDataDir();
+      // Export the current (last) floor's scene and save it with the correct floor number.
+      // This must be awaited before stacking so all floor GLBs exist on disk.
+      const result = await exportSceneToArrayBuffer(collectScene());
+      await saveFloorGLB(`${appDir}/output/floors`, result);
 
-          await runConvertor(args);
-          globalState.isGLTFUploaded = false;
-          globalState.isRendering = true;
-          await downloadFile(result as ArrayBuffer);
-          globalState.isGLTFUploaded = true;
-          globalState.doors = {};
-          globalState.windows = {};
-          globalState.houses = {};
-          globalState.stairs = {};
-          globalState.enemy = {};
-          globalState.dining = {};
-          globalState.floorCount = 1;
-          files = undefined;
-          fileUpload.value = "";
-          globalState.isRendering = false;
-        },
-        // (result) => downloadFile(result as ArrayBuffer),
-        (error) => console.log(error),
-        {
-          binary: true,
-          includeCustomExtensions: true,
-          onlyVisible: false,
-        },
-      );
+      const args = ["--stack", "--output_directory", `${appDir}/output/floors`];
+
+      globalState.isGLTFUploaded = false;
+      globalState.isRendering = true;
+      await runConvertor(args);
+      await downloadFile(result);
+      globalState.isGLTFUploaded = true;
+      globalState.doors = {};
+      globalState.windows = {};
+      globalState.houses = {};
+      globalState.stairs = {};
+      globalState.enemy = {};
+      globalState.dining = {};
+      globalState.floorCount = 1;
+      files = undefined;
+      fileUpload.value = "";
+      globalState.isRendering = false;
     }
   };
 
@@ -244,24 +245,24 @@
         await mkdir(`${appDir}/output/floors/`, { recursive: true });
         globalState.floorCount = 0;
       }
+      // When layering, snapshot and save the CURRENT floor's scene BEFORE loading the new
+      // blueprint. We capture floorCount now, before any increment, to name the file correctly.
+      // We must await this fully before proceeding so the GLB is on disk.
       if (isLayering && globalState.floorCount > 0) {
         if ($gltf) {
-          const exporter = new GLTFExporter();
-          exporter.parse(
-            collectScene(),
-            async (result) => {
-              await saveFloorGLB(
-                `${appDir}/output/floors`,
-                result as ArrayBuffer,
-              );
-            },
-            (error) => console.log(error),
-            {
-              binary: true,
-              includeCustomExtensions: true,
-              onlyVisible: false,
-            },
-          );
+          const currentFloorIndex = globalState.floorCount; // capture before any increment
+          const currentSceneNodes = collectScene();
+          try {
+            const floorResult =
+              await exportSceneToArrayBuffer(currentSceneNodes);
+            // Temporarily set floorCount to current index so saveFloorGLB names it correctly
+            const savedCount = globalState.floorCount;
+            globalState.floorCount = currentFloorIndex;
+            await saveFloorGLB(`${appDir}/output/floors`, floorResult);
+            globalState.floorCount = savedCount; // restore for the upcoming increment
+          } catch (error) {
+            console.error("Error saving current floor before layering:", error);
+          }
         }
       }
       try {
