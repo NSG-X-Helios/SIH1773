@@ -4,6 +4,7 @@
   import SidePanel from "$lib/components/sidepanel/SidePanel.svelte";
   import LoadingOverlay from "$lib/components/LoadingOverlay.svelte";
   import ComparisonView from "$lib/components/ComparisonView.svelte";
+  import ChatAssistant from "$lib/components/ui/ChatAssistant.svelte";
   import { globalState } from "$lib/state.svelte";
   import type { ThrelteGltf } from "@threlte/extras";
   import { Gizmo } from "@threlte/extras";
@@ -224,6 +225,7 @@
 
 <!-- Comparison overlay -->
 <ComparisonView />
+<ChatAssistant />
 
 <style>
   /* No additional styles needed - LoadingOverlay has its own styling */

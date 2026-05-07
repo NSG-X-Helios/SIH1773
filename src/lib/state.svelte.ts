@@ -17,4 +17,7 @@ export const globalState = $state({
   houses: {},
   dining: {},
   floorCount: 0,
+  isChatOpen: false,
+  chatMessages: [] as { role: "user" | "assistant"; content: string }[],
+  groqApiKey: import.meta.env.VITE_GROQ_API_KEY || "",
 });

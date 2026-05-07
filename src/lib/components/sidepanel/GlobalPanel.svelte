@@ -11,6 +11,7 @@
   import Download from "lucide-svelte/icons/download";
   import SplitSquareHorizontal from "lucide-svelte/icons/columns-2";
   import Layers from "lucide-svelte/icons/layers";
+  import Bot from "lucide-svelte/icons/bot";
   import { globalState } from "$lib/state.svelte";
   import { appDataDir, resourceDir } from "@tauri-apps/api/path";
   import { platform } from "@tauri-apps/plugin-os";
@@ -691,3 +692,10 @@
     <SplitSquareHorizontal size={300} /> Compare Blueprint
   </Button>
 {/if}
+
+<Button
+  class="text-lg w-full font-medium mt-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+  onclick={() => (globalState.isChatOpen = !globalState.isChatOpen)}
+>
+  <Bot size={300} /> AI Mission Planner
+</Button>
