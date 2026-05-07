@@ -2,7 +2,10 @@ export const globalState = $state({
   isGLTFUploaded: false,
   gltfFile: "",
   blueprintPreview: "" as string,
+  blueprintPreviews: [] as string[], // one entry per floor, for the stacked view left panel
   showComparison: false,
+  showStackedView: false,
+  stackedGltfFile: "" as string,
   currentMesh: "" as string | null,
   isFullScreen: false,
   isRendering: false,

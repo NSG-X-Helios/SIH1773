@@ -10,6 +10,7 @@
   import Upload from "lucide-svelte/icons/upload";
   import Download from "lucide-svelte/icons/download";
   import SplitSquareHorizontal from "lucide-svelte/icons/columns-2";
+  import Layers from "lucide-svelte/icons/layers";
   import { globalState } from "$lib/state.svelte";
   import { appDataDir, resourceDir } from "@tauri-apps/api/path";
   import { platform } from "@tauri-apps/plugin-os";
@@ -211,6 +212,29 @@
     console.log(stdout);
   };
 
+  // Runs the Python stacker to produce final.glb and previews it WITHOUT exporting/downloading.
+  const viewStackedModel = async () => {
+    if (globalState.floorCount < 2) return;
+    const appDir = await appDataDir();
+
+    // Save the current (last) floor before stacking so it is included.
+    globalState.isRendering = true;
+    globalState.isGLTFUploaded = false;
+    const result = await exportSceneToArrayBuffer(collectScene());
+    await saveFloorGLB(`${appDir}/output/floors`, result);
+
+    const args = ["--stack", "--output_directory", `${appDir}/output/floors`];
+    await runConvertor(args);
+
+    // Point the stacked preview at final.glb and open the stacked view overlay.
+    globalState.stackedGltfFile = convertFileSrc(
+      `${appDir}/output/floors/final.glb`,
+    );
+    globalState.isGLTFUploaded = true;
+    globalState.isRendering = false;
+    globalState.showStackedView = true;
+  };
+
   const saveFloorGLB = async (appFloorDir: string, result: ArrayBuffer) => {
     const fileName = `floor${globalState.floorCount}.glb`;
     const filePath = `${appFloorDir}/${fileName}`;
@@ -244,6 +268,7 @@
         }
         await mkdir(`${appDir}/output/floors/`, { recursive: true });
         globalState.floorCount = 0;
+        globalState.blueprintPreviews = []; // reset accumulated floor blueprints on fresh start
       }
       // When layering, snapshot and save the CURRENT floor's scene BEFORE loading the new
       // blueprint. We capture floorCount now, before any increment, to name the file correctly.
@@ -275,10 +300,23 @@
           await mkdir(`${appDir}/output/`, { recursive: true });
         }
         const file = `blueprint2D.${fileExtension}`;
+        // Write the standardized filename that the Python converter expects.
         await writeFile(standardizedFileName, new Uint8Array(fileContent));
 
-        // Store blueprint preview for comparison view
-        globalState.blueprintPreview = convertFileSrc(standardizedFileName);
+        // Also write a floor-specific copy solely for the preview URL.
+        // This busts the browser cache so each floor shows its own blueprint
+        // in the comparison view instead of always showing floor 1.
+        const floorBlueprintName = `blueprint2D_floor${globalState.floorCount + 1}.${fileExtension}`;
+        const floorBlueprintPath = `${appDir}/output/${floorBlueprintName}`;
+        await writeFile(floorBlueprintPath, new Uint8Array(fileContent));
+
+        // Store blueprint preview for comparison view — unique path per floor
+        globalState.blueprintPreview = convertFileSrc(floorBlueprintPath);
+        // Accumulate into blueprintPreviews for the stacked view left panel
+        globalState.blueprintPreviews = [
+          ...globalState.blueprintPreviews,
+          convertFileSrc(floorBlueprintPath),
+        ];
 
         globalState.isGLTFUploaded = false;
         await convertTo3D(file);
@@ -577,6 +615,16 @@
 >
   <Download size={300} /> Export to 3D
 </Button>
+{#if globalState.floorCount >= 2}
+  <Button
+    class="text-lg w-full font-medium"
+    onclick={viewStackedModel}
+    disabled={globalState.isRendering}
+    variant="outline"
+  >
+    <Layers size={300} /> View Stacked Model
+  </Button>
+{/if}
 {#if globalState.isGLTFUploaded && globalState.blueprintPreview}
   <Button
     class="text-lg w-full font-medium"

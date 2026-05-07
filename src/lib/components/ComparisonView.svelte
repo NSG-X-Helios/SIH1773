@@ -11,24 +11,94 @@
   const closeComparison = () => {
     globalState.showComparison = false;
   };
+
+  const closeStackedView = () => {
+    globalState.showStackedView = false;
+  };
 </script>
 
-<!-- Inline 3D Preview Scene Component -->
-{#snippet PreviewScene()}
-  <T.PerspectiveCamera makeDefault position={[30, 30, 30]} fov={50}>
-    <OrbitControls enableDamping autoRotate autoRotateSpeed={1} />
-  </T.PerspectiveCamera>
+<!-- Stacked Model Preview Overlay -->
+{#if globalState.showStackedView && globalState.stackedGltfFile}
+  <div class="comparison-overlay" transition:fade={{ duration: 200 }}>
+    <div class="comparison-header">
+      <h2 class="title">Stacked Floors — 3D Preview</h2>
+      <Button variant="ghost" size="icon" onclick={closeStackedView}>
+        <X size={20} />
+      </Button>
+    </div>
 
-  <T.AmbientLight intensity={0.6} />
-  <T.DirectionalLight position={[10, 20, 10]} intensity={1} castShadow />
+    <div class="comparison-content">
+      <div class="stacked-split">
+        <!-- Left: scrollable list of per-floor blueprints -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="label">Floor Blueprints</span>
+            <span class="hint-text"
+              >{globalState.blueprintPreviews.length} floor{globalState
+                .blueprintPreviews.length !== 1
+                ? "s"
+                : ""}</span
+            >
+          </div>
+          <div class="blueprint-list">
+            {#each globalState.blueprintPreviews as src, i}
+              <div class="blueprint-card">
+                <div class="floor-badge">Floor {i + 1}</div>
+                <div class="blueprint-card-body">
+                  <img
+                    {src}
+                    alt="Floor {i + 1} blueprint"
+                    class="blueprint-thumb"
+                  />
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
 
-  {#if globalState.gltfFile}
-    {#await useGltf(globalState.gltfFile) then gltf}
-      <T is={gltf.scene} />
-    {/await}
-  {/if}
-{/snippet}
+        <div class="divider"></div>
 
+        <!-- Right: stacked 3D model -->
+        <div class="panel model-panel-wrapper">
+          <div class="panel-header">
+            <span class="label"
+              >Combined {globalState.floorCount}-Floor Model</span
+            >
+            <span class="hint-text">Auto-rotating • Drag to explore</span>
+          </div>
+          <div class="panel-content model-panel">
+            <Canvas>
+              <T.PerspectiveCamera makeDefault position={[50, 50, 50]} fov={50}>
+                <OrbitControls enableDamping autoRotate autoRotateSpeed={0.8} />
+              </T.PerspectiveCamera>
+
+              <T.AmbientLight intensity={0.6} />
+              <T.DirectionalLight
+                position={[10, 20, 10]}
+                intensity={1}
+                castShadow
+              />
+
+              {#await useGltf(globalState.stackedGltfFile) then gltf}
+                <T is={gltf.scene} />
+              {/await}
+            </Canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comparison-footer">
+      <p class="hint">
+        Previewing the stacked {globalState.floorCount}-floor model. Use
+        <strong>Export to 3D</strong> to save it.
+      </p>
+      <Button onclick={closeStackedView}>Close Preview</Button>
+    </div>
+  </div>
+{/if}
+
+<!-- Blueprint vs 3D Comparison Overlay -->
 {#if globalState.showComparison && globalState.blueprintPreview}
   <div class="comparison-overlay" transition:fade={{ duration: 200 }}>
     <div class="comparison-header">
@@ -126,6 +196,69 @@
     grid-template-columns: 1fr auto 1fr;
     gap: 1rem;
     height: 100%;
+  }
+
+  .stacked-split {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    height: 100%;
+  }
+
+  .blueprint-list {
+    flex: 1;
+    min-height: 0; /* required: lets flexbox constrain the height so overflow-y works */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    background: hsl(var(--muted) / 0.3);
+    scrollbar-width: thin;
+  }
+
+  .blueprint-card {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0; /* don't compress cards when list is scrollable */
+    max-height: 320px; /* per-card viewport height — scroll within to see full image */
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) - 2px);
+    overflow: hidden;
+    background: hsl(var(--card));
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  }
+
+  /* The image area within each card is independently scrollable */
+  .blueprint-card-body {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    scrollbar-width: thin;
+  }
+
+  .floor-badge {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: hsl(var(--primary-foreground));
+    background: hsl(var(--primary));
+  }
+
+  .blueprint-thumb {
+    width: 100%;
+    display: block;
+    object-fit: contain;
+    background: white;
+    padding: 0.5rem;
+    /* no max-height here — full image renders inside the scrollable .blueprint-card-body */
+  }
+
+  .model-panel-wrapper {
+    display: flex;
+    flex-direction: column;
   }
 
   .panel {
