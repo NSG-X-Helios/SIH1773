@@ -23,7 +23,33 @@
       ]
     },
     {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "args": true,
+          "name": "binaries/converter",
+          "sidecar": true
+        }
+      ]
+    },
+    {
       "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "exec-sh",
+          "cmd": "sh",
+          "args": [
+            "-c",
+            {
+              "validator": "*"
+            }
+          ],
+          "sidecar": false
+        }
+      ]
+    },
+    {
+      "identifier": "shell:allow-spawn",
       "allow": [
         {
           "name": "exec-sh",

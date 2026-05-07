@@ -6,7 +6,7 @@ const platform = process.platform === "win32" ? "win" : "unix";
 // building the convertor using pyinstaller
 
 const buildCommand = `pyinstaller --onefile --collect-all "bpy" --add-data "assets${platform === "win" ? ";" : ":"}assets" main.py`;
-const workingDir = "2D-to-3D-converter";
+const workingDir = "Le_Edificio";
 
 const build = spawnSync(buildCommand, {
   cwd: workingDir,

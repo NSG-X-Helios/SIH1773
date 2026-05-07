@@ -19,6 +19,7 @@
     exists,
     mkdir,
     remove,
+    stat,
     writeFile,
   } from "@tauri-apps/plugin-fs";
   import { save, ask, message } from "@tauri-apps/plugin-dialog";
@@ -43,6 +44,42 @@
         { binary: true, includeCustomExtensions: true, onlyVisible: false },
       );
     });
+  };
+
+  // Polls the filesystem until `filePath` exists AND its size has been
+  // stable for `stabilityMs` (meaning the writer has finished flushing).
+  // This lets the UI unblock the moment the GLB is ready without waiting
+  // for the whole Python/binary process to exit.
+  const waitForFile = async (
+    filePath: string,
+    timeoutMs = 180_000,
+    stabilityMs = 800,
+  ): Promise<void> => {
+    const poll = 400; // check every 400 ms
+    const deadline = Date.now() + timeoutMs;
+    let stableSince = 0;
+    let lastSize = -1;
+
+    while (Date.now() < deadline) {
+      if (await exists(filePath)) {
+        const info = await stat(filePath);
+        const size = info.size ?? 0;
+        if (size > 0 && size === lastSize) {
+          // Size unchanged since last poll — check if stable long enough
+          if (Date.now() - stableSince >= stabilityMs) return; // done!
+        } else {
+          // Size changed (or first observation) — reset stability clock
+          lastSize = size;
+          stableSince = Date.now();
+        }
+      } else {
+        // File not yet created — reset
+        lastSize = -1;
+        stableSince = Date.now();
+      }
+      await new Promise((r) => setTimeout(r, poll));
+    }
+    throw new Error(`Timed out waiting for ${filePath} to be ready`);
   };
 
   let {
@@ -183,7 +220,11 @@
 
       globalState.isGLTFUploaded = false;
       globalState.isRendering = true;
-      await runConvertor(args);
+      const finalGlbPath = `${appDir}/output/floors/final.glb`;
+      // Delete any stale final.glb so waitForFile doesn't pick up the old one
+      if (await exists(finalGlbPath)) await remove(finalGlbPath);
+      runConvertor(args); // fire-and-forget: process runs in background
+      await waitForFile(finalGlbPath); // unblocks as soon as the file is ready
       await downloadFile(result);
       globalState.isGLTFUploaded = true;
       globalState.doors = {};
@@ -199,17 +240,29 @@
     }
   };
 
-  const runConvertor = async (flags: string[]) => {
-    const cmdStr =
-      ` python3 ../Le_Edificio/main.py ` +
-      flags.map((f) => `'${f.replace(/'/g, `'\\''`)}'`).join(" ");
-    const cmd = Command.create("exec-sh", ["-c", cmdStr], {
-      env: { PYTHONUNBUFFERED: "1" },
-      encoding: "utf-8",
-    });
-    const { stdout, stderr } = await cmd.execute();
-    console.log(stderr);
-    console.log(stdout);
+  const runConvertor = (flags: string[]): void => {
+    // Spawns the converter in the background — does NOT await process exit.
+    // Call waitForFile() on the expected output path to know when it's ready.
+    if (import.meta.env.DEV) {
+      // Dev mode: invoke python3 directly from the source tree.
+      // Requires the conda environment (twoD2threeD) to be active and
+      // Python + all dependencies to be installed on the machine.
+      const cmdStr =
+        ` python3 ../Le_Edificio/main.py ` +
+        flags.map((f) => `'${f.replace(/'/g, `'\\''`)}'`).join(" ");
+      const cmd = Command.create("exec-sh", ["-c", cmdStr], {
+        env: { PYTHONUNBUFFERED: "1" },
+        encoding: "utf-8",
+      });
+      cmd.spawn().catch((e) => console.error("Convertor spawn error:", e));
+    } else {
+      // Production mode: call the PyInstaller sidecar binary bundled with the app.
+      const cmd = Command.sidecar("binaries/converter", flags, {
+        env: { PYTHONUNBUFFERED: "1" },
+        encoding: "utf-8",
+      });
+      cmd.spawn().catch((e) => console.error("Convertor spawn error:", e));
+    }
   };
 
   // Runs the Python stacker to produce final.glb and previews it WITHOUT exporting/downloading.
@@ -224,12 +277,14 @@
     await saveFloorGLB(`${appDir}/output/floors`, result);
 
     const args = ["--stack", "--output_directory", `${appDir}/output/floors`];
-    await runConvertor(args);
+    const finalGlbPath = `${appDir}/output/floors/final.glb`;
+    // Delete any stale final.glb so the watcher doesn't return immediately with old data
+    if (await exists(finalGlbPath)) await remove(finalGlbPath);
+    runConvertor(args); // fire-and-forget
+    await waitForFile(finalGlbPath); // unblocks the moment stacking is done
 
     // Point the stacked preview at final.glb and open the stacked view overlay.
-    globalState.stackedGltfFile = convertFileSrc(
-      `${appDir}/output/floors/final.glb`,
-    );
+    globalState.stackedGltfFile = convertFileSrc(finalGlbPath);
     globalState.isGLTFUploaded = true;
     globalState.isRendering = false;
     globalState.showStackedView = true;
@@ -373,12 +428,14 @@
     console.log(args.join(" "));
     try {
       const converterStart = performance.now();
-      await runConvertor(args);
+      const appDir = await appDataDir();
+      const furnishedPath = `${appDir}/output/furnished.glb`;
+      // Delete any stale furnished.glb so the watcher doesn't pick up the previous floor
+      if (await exists(furnishedPath)) await remove(furnishedPath);
+      runConvertor(args); // fire-and-forget
+      await waitForFile(furnishedPath); // unblocks as soon as the GLB is written
       const converterEnd = performance.now();
-      console.log(
-        "time took for converter execution",
-        converterEnd - converterStart,
-      );
+      console.log("time to first usable GLB", converterEnd - converterStart);
     } catch (error) {
       console.error(error);
     }
